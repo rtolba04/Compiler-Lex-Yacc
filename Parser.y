@@ -38,13 +38,16 @@ int yylex(void);
 %%
 
 program: 
-    | program statement 
+    statement 
     ;
 
 statement:
     declaration_stmt
     | assignment_stmt
     | expression SEMICOLON          { printf("Result: %d\n", $1); }
+    | if_stmt
+    | while_stmt
+    | for_stmt
     ;
 
 declaration_stmt:
@@ -57,13 +60,15 @@ type:
     INT
     | FLOAT_TYPE
     | STRING_TYPE
-    | CHAR_TYPE
+    | CHAR_TYPE      
     ;
 
 assignment_stmt:
-    IDENTIFIER ASSIGN expression SEMICOLON
+    IDENTIFIER ASSIGN expression SEMICOLON   
     ;
-
+assign:
+    IDENTIFIER ASSIGN expression
+    ;
 expression:
     expression PLUS T                { $$ = $1 + $3; }
     | expression MINUS T             { $$ = $1 - $3; }
@@ -85,7 +90,7 @@ F:
     LPAREN expression RPAREN        { $$ = $2; }
     | MINUS F                       { $$ = -$2; }
     | IDENTIFIER                    { /* Need symbol table lookup */ }
-    | FLOAT                         { /* Handle float to int? */ }
+    | FLOAT                         { $$ = $1; }
     | NUMBER                        { $$ = $1; }
     ;
 
@@ -99,6 +104,19 @@ condition:
     | expression AND expression { $$ = ($1 && $3); }
     | expression OR expression { $$ = ($1 || $3); }
     | NOT expression { $$ = !$2; }
+    ;
+
+if_stmt:
+    IF LPAREN condition RPAREN LBRACE statement RBRACE                                { printf("IF statement executed\n"); }
+    IF LPAREN condition RPAREN LBRACE statement RBRACE ELSE LBRACE statement RBRACE   {printf("IF-ELSE statement executed\n");  }
+    ;
+
+while_stmt:
+    WHILE LPAREN condition RPAREN LBRACE statement RBRACE                             {printf("WHILE loop executed\n");}
+    ;
+
+for_stmt:
+    FOR LPAREN declaration_stmt condition SEMICOLON assign RPAREN LBRACE statement RBRACE    { printf("FOR loop with declaration executed\n");    }
     ;
 
 %%
