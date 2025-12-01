@@ -36,7 +36,6 @@ NEWLINE     \n
 "case"          { return CASE; }
 "default"       { return DEFAULT; }
 "break"         { return BREAK; }
-"function"      { return FUNCTION; }
 "return"        { return RETURN; }
 
 

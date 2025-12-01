@@ -16,7 +16,7 @@ int yylex(void);
 
 %token INT FLOAT_TYPE STRING_TYPE CHAR_TYPE CONST
 %token IF ELSE WHILE FOR REPEAT UNTIL SWITCH CASE DEFAULT BREAK
-%token FUNCTION RETURN
+%token RETURN
 
 %token PLUS MINUS MULTIPLY DIVIDE MODULO
 %token ASSIGN EQUAL NOT_EQUAL
@@ -38,7 +38,12 @@ int yylex(void);
 %%
 
 program: 
-    statement 
+    statement_list
+    ;
+
+statement_list:
+    statement
+    | statement_list statement
     ;
 
 statement:
@@ -49,6 +54,8 @@ statement:
     | while_stmt
     | for_stmt
     | switch_stmt
+    | function_decl
+    | return_stmt
     ;
 
 declaration_stmt:
@@ -109,7 +116,7 @@ condition:
 
 if_stmt:
     IF LPAREN condition RPAREN LBRACE statement RBRACE                                { printf("IF statement executed\n"); }
-    IF LPAREN condition RPAREN LBRACE statement RBRACE ELSE LBRACE statement RBRACE   {printf("IF-ELSE statement executed\n");  }
+    | IF LPAREN condition RPAREN LBRACE statement RBRACE ELSE LBRACE statement RBRACE   {printf("IF-ELSE statement executed\n");  }
     ;
 
 while_stmt:
@@ -146,6 +153,34 @@ default_case:
     | DEFAULT COLON statement BREAK SEMICOLON
     {     printf("DEFAULT case with BREAK executed\n");   }
     ;
+
+function_decl:
+    type IDENTIFIER LPAREN parameter_list RPAREN LBRACE statement RBRACE
+    {       printf("Function declaration executed\n");   }
+    | type IDENTIFIER LPAREN RPAREN LBRACE statement RBRACE
+    {       printf("Function declaration (no parameters) executed\n");    }
+    ;
+
+parameter_list:
+    parameter
+    | parameter_list COMMA parameter
+    ;
+
+parameter:
+    type IDENTIFIER
+    ;
+
+return_stmt:
+    RETURN expression SEMICOLON
+    {
+        printf("RETURN statement executed\n");
+    }
+    | RETURN SEMICOLON
+    {
+        printf("RETURN (void) statement executed\n");
+    }
+    ;
+
 
 
 %%

@@ -54,33 +54,32 @@
      CASE = 270,
      DEFAULT = 271,
      BREAK = 272,
-     FUNCTION = 273,
-     RETURN = 274,
-     PLUS = 275,
-     MINUS = 276,
-     MULTIPLY = 277,
-     DIVIDE = 278,
-     MODULO = 279,
-     ASSIGN = 280,
-     EQUAL = 281,
-     NOT_EQUAL = 282,
-     LESS_THAN = 283,
-     GREATER_THAN = 284,
-     LESS_EQUAL = 285,
-     GREATER_EQUAL = 286,
-     AND = 287,
-     OR = 288,
-     NOT = 289,
-     LPAREN = 290,
-     RPAREN = 291,
-     LBRACE = 292,
-     RBRACE = 293,
-     SEMICOLON = 294,
-     COMMA = 295,
-     COLON = 296,
-     IDENTIFIER = 297,
-     NUMBER = 298,
-     FLOAT = 299
+     RETURN = 273,
+     PLUS = 274,
+     MINUS = 275,
+     MULTIPLY = 276,
+     DIVIDE = 277,
+     MODULO = 278,
+     ASSIGN = 279,
+     EQUAL = 280,
+     NOT_EQUAL = 281,
+     LESS_THAN = 282,
+     GREATER_THAN = 283,
+     LESS_EQUAL = 284,
+     GREATER_EQUAL = 285,
+     AND = 286,
+     OR = 287,
+     NOT = 288,
+     LPAREN = 289,
+     RPAREN = 290,
+     LBRACE = 291,
+     RBRACE = 292,
+     SEMICOLON = 293,
+     COMMA = 294,
+     COLON = 295,
+     IDENTIFIER = 296,
+     NUMBER = 297,
+     FLOAT = 298
    };
 #endif
 
@@ -101,7 +100,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 105 "Parser.tab.h"
+#line 104 "Parser.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
