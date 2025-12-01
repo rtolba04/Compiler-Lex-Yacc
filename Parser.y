@@ -48,6 +48,7 @@ statement:
     | if_stmt
     | while_stmt
     | for_stmt
+    | switch_stmt
     ;
 
 declaration_stmt:
@@ -118,6 +119,34 @@ while_stmt:
 for_stmt:
     FOR LPAREN declaration_stmt condition SEMICOLON assign RPAREN LBRACE statement RBRACE    { printf("FOR loop with declaration executed\n");    }
     ;
+
+
+switch_stmt:
+    SWITCH LPAREN IDENTIFIER RPAREN LBRACE case_list RBRACE
+    {    printf("SWITCH statement executed\n");  }
+    | SWITCH LPAREN IDENTIFIER RPAREN LBRACE case_list default_case RBRACE
+    {   printf("SWITCH statement with DEFAULT executed\n");   }
+    ;
+
+case_list:
+    case_stmt
+    | case_list case_stmt
+    ;
+
+case_stmt:
+    CASE expression COLON statement
+    {      printf("CASE executed\n");    }
+    | CASE expression COLON statement BREAK SEMICOLON
+    {      printf("CASE with BREAK executed\n");    }
+    ;
+
+default_case:
+    DEFAULT COLON statement
+    {        printf("DEFAULT case executed\n");   }
+    | DEFAULT COLON statement BREAK SEMICOLON
+    {     printf("DEFAULT case with BREAK executed\n");   }
+    ;
+
 
 %%
 
