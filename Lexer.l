@@ -36,6 +36,7 @@ NEWLINE     \n
 "break"         { return BREAK; }
 "return"        { return RETURN; }
 "do"            { return DO; }
+"void"          { return VOID_TYPE; }
 
 "+"             { return PLUS; }
 "-"             { return MINUS; }

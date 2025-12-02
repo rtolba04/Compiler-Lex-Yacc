@@ -4,6 +4,7 @@
 
 void yyerror(const char *s);
 int yylex(void);
+extern FILE *yyin;
 
 %}
 
@@ -16,7 +17,7 @@ int yylex(void);
 
 %token INT FLOAT_TYPE STRING_TYPE CHAR_TYPE CONST
 %token IF ELSE WHILE FOR DO SWITCH CASE DEFAULT BREAK
-%token RETURN
+%token RETURN VOID_TYPE
 
 %token PLUS MINUS MULTIPLY DIVIDE MODULO
 %token ASSIGN EQUAL NOT_EQUAL
@@ -33,7 +34,7 @@ int yylex(void);
 %token <floatval> FLOAT 
 
 
-%type <integer> expression T F condition
+%type <integer> expression T F condition assign
 %start program
 %%
 
@@ -57,6 +58,7 @@ statement:
     | function_decl
     | do_while_stmt
     | return_stmt
+    | function_call SEMICOLON
     ;
 
 declaration_stmt:
@@ -73,11 +75,16 @@ type:
     ;
 
 assignment_stmt:
-    IDENTIFIER ASSIGN expression SEMICOLON   
+    IDENTIFIER ASSIGN expression SEMICOLON
+    { printf("Assignment: %s\n", $1); }
     ;
 assign:
-    IDENTIFIER ASSIGN expression
+    IDENTIFIER ASSIGN expression  { 
+        printf("Assignment executed: %s \n", $1);
+        $$ = $3;  
+    }
     ;
+    
 expression:
     expression PLUS T                { $$ = $1 + $3; }
     | expression MINUS T             { $$ = $1 - $3; }
@@ -160,6 +167,8 @@ function_decl:
     {       printf("Function declaration executed\n");   }
     | type IDENTIFIER LPAREN RPAREN LBRACE statement_list RBRACE
     {       printf("Function declaration (no parameters) executed\n");    }
+    | VOID_TYPE IDENTIFIER LPAREN parameter_list RPAREN LBRACE statement_list RBRACE
+    {       printf("Void function declaration executed\n");   }
     ;
 
 parameter_list:
@@ -187,13 +196,35 @@ do_while_stmt:
     { printf("DO-WHILE loop executed\n"); }
     ;
 
+function_call:
+    IDENTIFIER LPAREN argument_list RPAREN 
+    { printf("Function call: %s() executed\n", $1); }
+    | IDENTIFIER LPAREN RPAREN 
+    { printf("Function call: %s() with no arguments executed\n", $1); }
+    ;
+
+argument_list:
+    expression
+    | argument_list COMMA expression
+    ;
 %%
 
 void yyerror(const char *s) {
     fprintf(stderr, "Error: %s\n", s);
 }
 
-int main() {
-    yyparse();
-    return 0;
+int main(int argc, char **argv) {
+    if (argc > 1){
+        yyin = fopen(argv[1], "r");
+
+        if (!yyin) {
+        perror("Error opening file");
+        return 1;
+        }
+    }
+    if(yyparse() == 0) {
+        printf("Parsing completed successfully.\n");
+    } else {
+        printf("Parsing failed.\n");
+    }
 }

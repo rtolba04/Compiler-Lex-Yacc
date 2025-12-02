@@ -17,175 +17,188 @@ Grammar
    11          | function_decl
    12          | do_while_stmt
    13          | return_stmt
+   14          | function_call SEMICOLON
 
-   14 declaration_stmt: type IDENTIFIER SEMICOLON
-   15                 | CONST type IDENTIFIER ASSIGN expression SEMICOLON
-   16                 | type IDENTIFIER ASSIGN expression SEMICOLON
+   15 declaration_stmt: type IDENTIFIER SEMICOLON
+   16                 | CONST type IDENTIFIER ASSIGN expression SEMICOLON
+   17                 | type IDENTIFIER ASSIGN expression SEMICOLON
 
-   17 type: INT
-   18     | FLOAT_TYPE
-   19     | STRING_TYPE
-   20     | CHAR_TYPE
+   18 type: INT
+   19     | FLOAT_TYPE
+   20     | STRING_TYPE
+   21     | CHAR_TYPE
 
-   21 assignment_stmt: IDENTIFIER ASSIGN expression SEMICOLON
+   22 assignment_stmt: IDENTIFIER ASSIGN expression SEMICOLON
 
-   22 assign: IDENTIFIER ASSIGN expression
+   23 assign: IDENTIFIER ASSIGN expression
 
-   23 expression: expression PLUS T
-   24           | expression MINUS T
-   25           | T
+   24 expression: expression PLUS T
+   25           | expression MINUS T
+   26           | T
 
-   26 T: T MULTIPLY F
-   27  | T DIVIDE F
-   28  | T MODULO F
-   29  | F
+   27 T: T MULTIPLY F
+   28  | T DIVIDE F
+   29  | T MODULO F
+   30  | F
 
-   30 F: LPAREN expression RPAREN
-   31  | MINUS F
-   32  | IDENTIFIER
-   33  | FLOAT
-   34  | NUMBER
+   31 F: LPAREN expression RPAREN
+   32  | MINUS F
+   33  | IDENTIFIER
+   34  | FLOAT
+   35  | NUMBER
 
-   35 condition: expression EQUAL expression
-   36          | expression NOT_EQUAL expression
-   37          | expression LESS_THAN expression
-   38          | expression GREATER_THAN expression
-   39          | expression LESS_EQUAL expression
-   40          | expression GREATER_EQUAL expression
-   41          | expression AND expression
-   42          | expression OR expression
-   43          | NOT expression
+   36 condition: expression EQUAL expression
+   37          | expression NOT_EQUAL expression
+   38          | expression LESS_THAN expression
+   39          | expression GREATER_THAN expression
+   40          | expression LESS_EQUAL expression
+   41          | expression GREATER_EQUAL expression
+   42          | expression AND expression
+   43          | expression OR expression
+   44          | NOT expression
 
-   44 if_stmt: IF LPAREN condition RPAREN LBRACE statement_list RBRACE
-   45        | IF LPAREN condition RPAREN LBRACE statement_list RBRACE ELSE LBRACE statement_list RBRACE
+   45 if_stmt: IF LPAREN condition RPAREN LBRACE statement_list RBRACE
+   46        | IF LPAREN condition RPAREN LBRACE statement_list RBRACE ELSE LBRACE statement_list RBRACE
 
-   46 while_stmt: WHILE LPAREN condition RPAREN LBRACE statement_list RBRACE
+   47 while_stmt: WHILE LPAREN condition RPAREN LBRACE statement_list RBRACE
 
-   47 for_stmt: FOR LPAREN declaration_stmt condition SEMICOLON assign RPAREN LBRACE statement_list RBRACE
+   48 for_stmt: FOR LPAREN declaration_stmt condition SEMICOLON assign RPAREN LBRACE statement_list RBRACE
 
-   48 switch_stmt: SWITCH LPAREN IDENTIFIER RPAREN LBRACE case_list RBRACE
-   49            | SWITCH LPAREN IDENTIFIER RPAREN LBRACE case_list default_case RBRACE
+   49 switch_stmt: SWITCH LPAREN IDENTIFIER RPAREN LBRACE case_list RBRACE
+   50            | SWITCH LPAREN IDENTIFIER RPAREN LBRACE case_list default_case RBRACE
 
-   50 case_list: case_stmt
-   51          | case_list case_stmt
+   51 case_list: case_stmt
+   52          | case_list case_stmt
 
-   52 case_stmt: CASE expression COLON statement_list
-   53          | CASE expression COLON statement_list BREAK SEMICOLON
+   53 case_stmt: CASE expression COLON statement_list
+   54          | CASE expression COLON statement_list BREAK SEMICOLON
 
-   54 default_case: DEFAULT COLON statement_list
-   55             | DEFAULT COLON statement_list BREAK SEMICOLON
+   55 default_case: DEFAULT COLON statement_list
+   56             | DEFAULT COLON statement_list BREAK SEMICOLON
 
-   56 function_decl: type IDENTIFIER LPAREN parameter_list RPAREN LBRACE statement_list RBRACE
-   57              | type IDENTIFIER LPAREN RPAREN LBRACE statement_list RBRACE
+   57 function_decl: type IDENTIFIER LPAREN parameter_list RPAREN LBRACE statement_list RBRACE
+   58              | type IDENTIFIER LPAREN RPAREN LBRACE statement_list RBRACE
+   59              | VOID_TYPE IDENTIFIER LPAREN parameter_list RPAREN LBRACE statement_list RBRACE
 
-   58 parameter_list: parameter
-   59               | parameter_list COMMA parameter
+   60 parameter_list: parameter
+   61               | parameter_list COMMA parameter
 
-   60 parameter: type IDENTIFIER
+   62 parameter: type IDENTIFIER
 
-   61 return_stmt: RETURN expression SEMICOLON
-   62            | RETURN SEMICOLON
+   63 return_stmt: RETURN expression SEMICOLON
+   64            | RETURN SEMICOLON
 
-   63 do_while_stmt: DO LBRACE statement_list RBRACE WHILE LPAREN condition RPAREN SEMICOLON
+   65 do_while_stmt: DO LBRACE statement_list RBRACE WHILE LPAREN condition RPAREN SEMICOLON
+
+   66 function_call: IDENTIFIER LPAREN argument_list RPAREN
+   67              | IDENTIFIER LPAREN RPAREN
+
+   68 argument_list: expression
+   69              | argument_list COMMA expression
 
 
 Terminals, with rules where they appear
 
 $end (0) 0
 error (256)
-INT (258) 17
-FLOAT_TYPE (259) 18
-STRING_TYPE (260) 19
-CHAR_TYPE (261) 20
-CONST (262) 15
-IF (263) 44 45
-ELSE (264) 45
-WHILE (265) 46 63
-FOR (266) 47
-DO (267) 63
-SWITCH (268) 48 49
-CASE (269) 52 53
-DEFAULT (270) 54 55
-BREAK (271) 53 55
-RETURN (272) 61 62
-PLUS (273) 23
-MINUS (274) 24 31
-MULTIPLY (275) 26
-DIVIDE (276) 27
-MODULO (277) 28
-ASSIGN (278) 15 16 21 22
-EQUAL (279) 35
-NOT_EQUAL (280) 36
-LESS_THAN (281) 37
-GREATER_THAN (282) 38
-LESS_EQUAL (283) 39
-GREATER_EQUAL (284) 40
-AND (285) 41
-OR (286) 42
-NOT (287) 43
-LPAREN (288) 30 44 45 46 47 48 49 56 57 63
-RPAREN (289) 30 44 45 46 47 48 49 56 57 63
-LBRACE (290) 44 45 46 47 48 49 56 57 63
-RBRACE (291) 44 45 46 47 48 49 56 57 63
-SEMICOLON (292) 6 14 15 16 21 47 53 55 61 62 63
-COMMA (293) 59
-COLON (294) 52 53 54 55
-IDENTIFIER (295) 14 15 16 21 22 32 48 49 56 57 60
-NUMBER (296) 34
-FLOAT (297) 33
+INT (258) 18
+FLOAT_TYPE (259) 19
+STRING_TYPE (260) 20
+CHAR_TYPE (261) 21
+CONST (262) 16
+IF (263) 45 46
+ELSE (264) 46
+WHILE (265) 47 65
+FOR (266) 48
+DO (267) 65
+SWITCH (268) 49 50
+CASE (269) 53 54
+DEFAULT (270) 55 56
+BREAK (271) 54 56
+RETURN (272) 63 64
+VOID_TYPE (273) 59
+PLUS (274) 24
+MINUS (275) 25 32
+MULTIPLY (276) 27
+DIVIDE (277) 28
+MODULO (278) 29
+ASSIGN (279) 16 17 22 23
+EQUAL (280) 36
+NOT_EQUAL (281) 37
+LESS_THAN (282) 38
+GREATER_THAN (283) 39
+LESS_EQUAL (284) 40
+GREATER_EQUAL (285) 41
+AND (286) 42
+OR (287) 43
+NOT (288) 44
+LPAREN (289) 31 45 46 47 48 49 50 57 58 59 65 66 67
+RPAREN (290) 31 45 46 47 48 49 50 57 58 59 65 66 67
+LBRACE (291) 45 46 47 48 49 50 57 58 59 65
+RBRACE (292) 45 46 47 48 49 50 57 58 59 65
+SEMICOLON (293) 6 14 15 16 17 22 48 54 56 63 64 65
+COMMA (294) 61 69
+COLON (295) 53 54 55 56
+IDENTIFIER (296) 15 16 17 22 23 33 49 50 57 58 59 62 66 67
+NUMBER (297) 35
+FLOAT (298) 34
 
 
 Nonterminals, with rules where they appear
 
-$accept (43)
+$accept (44)
     on left: 0
-program (44)
+program (45)
     on left: 1, on right: 0
-statement_list (45)
-    on left: 2 3, on right: 1 3 44 45 46 47 52 53 54 55 56 57 63
-statement (46)
-    on left: 4 5 6 7 8 9 10 11 12 13, on right: 2 3
-declaration_stmt (47)
-    on left: 14 15 16, on right: 4 47
-type (48)
-    on left: 17 18 19 20, on right: 14 15 16 56 57 60
-assignment_stmt (49)
-    on left: 21, on right: 5
-assign (50)
-    on left: 22, on right: 47
-expression (51)
-    on left: 23 24 25, on right: 6 15 16 21 22 23 24 30 35 36 37 38
-    39 40 41 42 43 52 53 61
-T (52)
-    on left: 26 27 28 29, on right: 23 24 25 26 27 28
-F (53)
-    on left: 30 31 32 33 34, on right: 26 27 28 29 31
-condition (54)
-    on left: 35 36 37 38 39 40 41 42 43, on right: 44 45 46 47 63
-if_stmt (55)
-    on left: 44 45, on right: 7
-while_stmt (56)
-    on left: 46, on right: 8
-for_stmt (57)
-    on left: 47, on right: 9
-switch_stmt (58)
-    on left: 48 49, on right: 10
-case_list (59)
-    on left: 50 51, on right: 48 49 51
-case_stmt (60)
-    on left: 52 53, on right: 50 51
-default_case (61)
-    on left: 54 55, on right: 49
-function_decl (62)
-    on left: 56 57, on right: 11
-parameter_list (63)
-    on left: 58 59, on right: 56 59
-parameter (64)
-    on left: 60, on right: 58 59
-return_stmt (65)
-    on left: 61 62, on right: 13
-do_while_stmt (66)
-    on left: 63, on right: 12
+statement_list (46)
+    on left: 2 3, on right: 1 3 45 46 47 48 53 54 55 56 57 58 59 65
+statement (47)
+    on left: 4 5 6 7 8 9 10 11 12 13 14, on right: 2 3
+declaration_stmt (48)
+    on left: 15 16 17, on right: 4 48
+type (49)
+    on left: 18 19 20 21, on right: 15 16 17 57 58 62
+assignment_stmt (50)
+    on left: 22, on right: 5
+assign (51)
+    on left: 23, on right: 48
+expression (52)
+    on left: 24 25 26, on right: 6 16 17 22 23 24 25 31 36 37 38 39
+    40 41 42 43 44 53 54 63 68 69
+T (53)
+    on left: 27 28 29 30, on right: 24 25 26 27 28 29
+F (54)
+    on left: 31 32 33 34 35, on right: 27 28 29 30 32
+condition (55)
+    on left: 36 37 38 39 40 41 42 43 44, on right: 45 46 47 48 65
+if_stmt (56)
+    on left: 45 46, on right: 7
+while_stmt (57)
+    on left: 47, on right: 8
+for_stmt (58)
+    on left: 48, on right: 9
+switch_stmt (59)
+    on left: 49 50, on right: 10
+case_list (60)
+    on left: 51 52, on right: 49 50 52
+case_stmt (61)
+    on left: 53 54, on right: 51 52
+default_case (62)
+    on left: 55 56, on right: 50
+function_decl (63)
+    on left: 57 58 59, on right: 11
+parameter_list (64)
+    on left: 60 61, on right: 57 59 61
+parameter (65)
+    on left: 62, on right: 60 61
+return_stmt (66)
+    on left: 63 64, on right: 13
+do_while_stmt (67)
+    on left: 65, on right: 12
+function_call (68)
+    on left: 66 67, on right: 14
+argument_list (69)
+    on left: 68 69, on right: 66 69
 
 
 state 0
@@ -203,184 +216,196 @@ state 0
     DO           shift, and go to state 9
     SWITCH       shift, and go to state 10
     RETURN       shift, and go to state 11
-    MINUS        shift, and go to state 12
-    LPAREN       shift, and go to state 13
-    IDENTIFIER   shift, and go to state 14
-    NUMBER       shift, and go to state 15
-    FLOAT        shift, and go to state 16
+    VOID_TYPE    shift, and go to state 12
+    MINUS        shift, and go to state 13
+    LPAREN       shift, and go to state 14
+    IDENTIFIER   shift, and go to state 15
+    NUMBER       shift, and go to state 16
+    FLOAT        shift, and go to state 17
 
-    program           go to state 17
-    statement_list    go to state 18
-    statement         go to state 19
-    declaration_stmt  go to state 20
-    type              go to state 21
-    assignment_stmt   go to state 22
-    expression        go to state 23
-    T                 go to state 24
-    F                 go to state 25
-    if_stmt           go to state 26
-    while_stmt        go to state 27
-    for_stmt          go to state 28
-    switch_stmt       go to state 29
-    function_decl     go to state 30
-    return_stmt       go to state 31
-    do_while_stmt     go to state 32
+    program           go to state 18
+    statement_list    go to state 19
+    statement         go to state 20
+    declaration_stmt  go to state 21
+    type              go to state 22
+    assignment_stmt   go to state 23
+    expression        go to state 24
+    T                 go to state 25
+    F                 go to state 26
+    if_stmt           go to state 27
+    while_stmt        go to state 28
+    for_stmt          go to state 29
+    switch_stmt       go to state 30
+    function_decl     go to state 31
+    return_stmt       go to state 32
+    do_while_stmt     go to state 33
+    function_call     go to state 34
 
 
 state 1
 
-   17 type: INT .
-
-    $default  reduce using rule 17 (type)
-
-
-state 2
-
-   18 type: FLOAT_TYPE .
+   18 type: INT .
 
     $default  reduce using rule 18 (type)
 
 
-state 3
+state 2
 
-   19 type: STRING_TYPE .
+   19 type: FLOAT_TYPE .
 
     $default  reduce using rule 19 (type)
 
 
-state 4
+state 3
 
-   20 type: CHAR_TYPE .
+   20 type: STRING_TYPE .
 
     $default  reduce using rule 20 (type)
 
 
+state 4
+
+   21 type: CHAR_TYPE .
+
+    $default  reduce using rule 21 (type)
+
+
 state 5
 
-   15 declaration_stmt: CONST . type IDENTIFIER ASSIGN expression SEMICOLON
+   16 declaration_stmt: CONST . type IDENTIFIER ASSIGN expression SEMICOLON
 
     INT          shift, and go to state 1
     FLOAT_TYPE   shift, and go to state 2
     STRING_TYPE  shift, and go to state 3
     CHAR_TYPE    shift, and go to state 4
 
-    type  go to state 33
+    type  go to state 35
 
 
 state 6
 
-   44 if_stmt: IF . LPAREN condition RPAREN LBRACE statement_list RBRACE
-   45        | IF . LPAREN condition RPAREN LBRACE statement_list RBRACE ELSE LBRACE statement_list RBRACE
-
-    LPAREN  shift, and go to state 34
-
-
-state 7
-
-   46 while_stmt: WHILE . LPAREN condition RPAREN LBRACE statement_list RBRACE
-
-    LPAREN  shift, and go to state 35
-
-
-state 8
-
-   47 for_stmt: FOR . LPAREN declaration_stmt condition SEMICOLON assign RPAREN LBRACE statement_list RBRACE
+   45 if_stmt: IF . LPAREN condition RPAREN LBRACE statement_list RBRACE
+   46        | IF . LPAREN condition RPAREN LBRACE statement_list RBRACE ELSE LBRACE statement_list RBRACE
 
     LPAREN  shift, and go to state 36
 
 
-state 9
+state 7
 
-   63 do_while_stmt: DO . LBRACE statement_list RBRACE WHILE LPAREN condition RPAREN SEMICOLON
+   47 while_stmt: WHILE . LPAREN condition RPAREN LBRACE statement_list RBRACE
 
-    LBRACE  shift, and go to state 37
+    LPAREN  shift, and go to state 37
 
 
-state 10
+state 8
 
-   48 switch_stmt: SWITCH . LPAREN IDENTIFIER RPAREN LBRACE case_list RBRACE
-   49            | SWITCH . LPAREN IDENTIFIER RPAREN LBRACE case_list default_case RBRACE
+   48 for_stmt: FOR . LPAREN declaration_stmt condition SEMICOLON assign RPAREN LBRACE statement_list RBRACE
 
     LPAREN  shift, and go to state 38
 
 
+state 9
+
+   65 do_while_stmt: DO . LBRACE statement_list RBRACE WHILE LPAREN condition RPAREN SEMICOLON
+
+    LBRACE  shift, and go to state 39
+
+
+state 10
+
+   49 switch_stmt: SWITCH . LPAREN IDENTIFIER RPAREN LBRACE case_list RBRACE
+   50            | SWITCH . LPAREN IDENTIFIER RPAREN LBRACE case_list default_case RBRACE
+
+    LPAREN  shift, and go to state 40
+
+
 state 11
 
-   61 return_stmt: RETURN . expression SEMICOLON
-   62            | RETURN . SEMICOLON
+   63 return_stmt: RETURN . expression SEMICOLON
+   64            | RETURN . SEMICOLON
 
-    MINUS       shift, and go to state 12
-    LPAREN      shift, and go to state 13
-    SEMICOLON   shift, and go to state 39
-    IDENTIFIER  shift, and go to state 40
-    NUMBER      shift, and go to state 15
-    FLOAT       shift, and go to state 16
+    MINUS       shift, and go to state 13
+    LPAREN      shift, and go to state 14
+    SEMICOLON   shift, and go to state 41
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
 
-    expression  go to state 41
-    T           go to state 24
-    F           go to state 25
+    expression  go to state 43
+    T           go to state 25
+    F           go to state 26
 
 
 state 12
 
-   31 F: MINUS . F
+   59 function_decl: VOID_TYPE . IDENTIFIER LPAREN parameter_list RPAREN LBRACE statement_list RBRACE
 
-    MINUS       shift, and go to state 12
-    LPAREN      shift, and go to state 13
-    IDENTIFIER  shift, and go to state 40
-    NUMBER      shift, and go to state 15
-    FLOAT       shift, and go to state 16
-
-    F  go to state 42
+    IDENTIFIER  shift, and go to state 44
 
 
 state 13
 
-   30 F: LPAREN . expression RPAREN
+   32 F: MINUS . F
 
-    MINUS       shift, and go to state 12
-    LPAREN      shift, and go to state 13
-    IDENTIFIER  shift, and go to state 40
-    NUMBER      shift, and go to state 15
-    FLOAT       shift, and go to state 16
+    MINUS       shift, and go to state 13
+    LPAREN      shift, and go to state 14
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
 
-    expression  go to state 43
-    T           go to state 24
-    F           go to state 25
+    F  go to state 45
 
 
 state 14
 
-   21 assignment_stmt: IDENTIFIER . ASSIGN expression SEMICOLON
-   32 F: IDENTIFIER .
+   31 F: LPAREN . expression RPAREN
 
-    ASSIGN  shift, and go to state 44
+    MINUS       shift, and go to state 13
+    LPAREN      shift, and go to state 14
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
 
-    $default  reduce using rule 32 (F)
+    expression  go to state 46
+    T           go to state 25
+    F           go to state 26
 
 
 state 15
 
-   34 F: NUMBER .
+   22 assignment_stmt: IDENTIFIER . ASSIGN expression SEMICOLON
+   33 F: IDENTIFIER .
+   66 function_call: IDENTIFIER . LPAREN argument_list RPAREN
+   67              | IDENTIFIER . LPAREN RPAREN
 
-    $default  reduce using rule 34 (F)
-
-
-state 16
-
-   33 F: FLOAT .
+    ASSIGN  shift, and go to state 47
+    LPAREN  shift, and go to state 48
 
     $default  reduce using rule 33 (F)
 
 
+state 16
+
+   35 F: NUMBER .
+
+    $default  reduce using rule 35 (F)
+
+
 state 17
 
-    0 $accept: program . $end
+   34 F: FLOAT .
 
-    $end  shift, and go to state 45
+    $default  reduce using rule 34 (F)
 
 
 state 18
+
+    0 $accept: program . $end
+
+    $end  shift, and go to state 49
+
+
+state 19
 
     1 program: statement_list .
     3 statement_list: statement_list . statement
@@ -396,187 +421,196 @@ state 18
     DO           shift, and go to state 9
     SWITCH       shift, and go to state 10
     RETURN       shift, and go to state 11
-    MINUS        shift, and go to state 12
-    LPAREN       shift, and go to state 13
-    IDENTIFIER   shift, and go to state 14
-    NUMBER       shift, and go to state 15
-    FLOAT        shift, and go to state 16
+    VOID_TYPE    shift, and go to state 12
+    MINUS        shift, and go to state 13
+    LPAREN       shift, and go to state 14
+    IDENTIFIER   shift, and go to state 15
+    NUMBER       shift, and go to state 16
+    FLOAT        shift, and go to state 17
 
     $default  reduce using rule 1 (program)
 
-    statement         go to state 46
-    declaration_stmt  go to state 20
-    type              go to state 21
-    assignment_stmt   go to state 22
-    expression        go to state 23
-    T                 go to state 24
-    F                 go to state 25
-    if_stmt           go to state 26
-    while_stmt        go to state 27
-    for_stmt          go to state 28
-    switch_stmt       go to state 29
-    function_decl     go to state 30
-    return_stmt       go to state 31
-    do_while_stmt     go to state 32
+    statement         go to state 50
+    declaration_stmt  go to state 21
+    type              go to state 22
+    assignment_stmt   go to state 23
+    expression        go to state 24
+    T                 go to state 25
+    F                 go to state 26
+    if_stmt           go to state 27
+    while_stmt        go to state 28
+    for_stmt          go to state 29
+    switch_stmt       go to state 30
+    function_decl     go to state 31
+    return_stmt       go to state 32
+    do_while_stmt     go to state 33
+    function_call     go to state 34
 
 
-state 19
+state 20
 
     2 statement_list: statement .
 
     $default  reduce using rule 2 (statement_list)
 
 
-state 20
+state 21
 
     4 statement: declaration_stmt .
 
     $default  reduce using rule 4 (statement)
 
 
-state 21
-
-   14 declaration_stmt: type . IDENTIFIER SEMICOLON
-   16                 | type . IDENTIFIER ASSIGN expression SEMICOLON
-   56 function_decl: type . IDENTIFIER LPAREN parameter_list RPAREN LBRACE statement_list RBRACE
-   57              | type . IDENTIFIER LPAREN RPAREN LBRACE statement_list RBRACE
-
-    IDENTIFIER  shift, and go to state 47
-
-
 state 22
+
+   15 declaration_stmt: type . IDENTIFIER SEMICOLON
+   17                 | type . IDENTIFIER ASSIGN expression SEMICOLON
+   57 function_decl: type . IDENTIFIER LPAREN parameter_list RPAREN LBRACE statement_list RBRACE
+   58              | type . IDENTIFIER LPAREN RPAREN LBRACE statement_list RBRACE
+
+    IDENTIFIER  shift, and go to state 51
+
+
+state 23
 
     5 statement: assignment_stmt .
 
     $default  reduce using rule 5 (statement)
 
 
-state 23
-
-    6 statement: expression . SEMICOLON
-   23 expression: expression . PLUS T
-   24           | expression . MINUS T
-
-    PLUS       shift, and go to state 48
-    MINUS      shift, and go to state 49
-    SEMICOLON  shift, and go to state 50
-
-
 state 24
 
-   25 expression: T .
-   26 T: T . MULTIPLY F
-   27  | T . DIVIDE F
-   28  | T . MODULO F
+    6 statement: expression . SEMICOLON
+   24 expression: expression . PLUS T
+   25           | expression . MINUS T
 
-    MULTIPLY  shift, and go to state 51
-    DIVIDE    shift, and go to state 52
-    MODULO    shift, and go to state 53
-
-    $default  reduce using rule 25 (expression)
+    PLUS       shift, and go to state 52
+    MINUS      shift, and go to state 53
+    SEMICOLON  shift, and go to state 54
 
 
 state 25
 
-   29 T: F .
+   26 expression: T .
+   27 T: T . MULTIPLY F
+   28  | T . DIVIDE F
+   29  | T . MODULO F
 
-    $default  reduce using rule 29 (T)
+    MULTIPLY  shift, and go to state 55
+    DIVIDE    shift, and go to state 56
+    MODULO    shift, and go to state 57
+
+    $default  reduce using rule 26 (expression)
 
 
 state 26
+
+   30 T: F .
+
+    $default  reduce using rule 30 (T)
+
+
+state 27
 
     7 statement: if_stmt .
 
     $default  reduce using rule 7 (statement)
 
 
-state 27
+state 28
 
     8 statement: while_stmt .
 
     $default  reduce using rule 8 (statement)
 
 
-state 28
+state 29
 
     9 statement: for_stmt .
 
     $default  reduce using rule 9 (statement)
 
 
-state 29
+state 30
 
    10 statement: switch_stmt .
 
     $default  reduce using rule 10 (statement)
 
 
-state 30
+state 31
 
    11 statement: function_decl .
 
     $default  reduce using rule 11 (statement)
 
 
-state 31
+state 32
 
    13 statement: return_stmt .
 
     $default  reduce using rule 13 (statement)
 
 
-state 32
+state 33
 
    12 statement: do_while_stmt .
 
     $default  reduce using rule 12 (statement)
 
 
-state 33
-
-   15 declaration_stmt: CONST type . IDENTIFIER ASSIGN expression SEMICOLON
-
-    IDENTIFIER  shift, and go to state 54
-
-
 state 34
 
-   44 if_stmt: IF LPAREN . condition RPAREN LBRACE statement_list RBRACE
-   45        | IF LPAREN . condition RPAREN LBRACE statement_list RBRACE ELSE LBRACE statement_list RBRACE
+   14 statement: function_call . SEMICOLON
 
-    MINUS       shift, and go to state 12
-    NOT         shift, and go to state 55
-    LPAREN      shift, and go to state 13
-    IDENTIFIER  shift, and go to state 40
-    NUMBER      shift, and go to state 15
-    FLOAT       shift, and go to state 16
-
-    expression  go to state 56
-    T           go to state 24
-    F           go to state 25
-    condition   go to state 57
+    SEMICOLON  shift, and go to state 58
 
 
 state 35
 
-   46 while_stmt: WHILE LPAREN . condition RPAREN LBRACE statement_list RBRACE
+   16 declaration_stmt: CONST type . IDENTIFIER ASSIGN expression SEMICOLON
 
-    MINUS       shift, and go to state 12
-    NOT         shift, and go to state 55
-    LPAREN      shift, and go to state 13
-    IDENTIFIER  shift, and go to state 40
-    NUMBER      shift, and go to state 15
-    FLOAT       shift, and go to state 16
-
-    expression  go to state 56
-    T           go to state 24
-    F           go to state 25
-    condition   go to state 58
+    IDENTIFIER  shift, and go to state 59
 
 
 state 36
 
-   47 for_stmt: FOR LPAREN . declaration_stmt condition SEMICOLON assign RPAREN LBRACE statement_list RBRACE
+   45 if_stmt: IF LPAREN . condition RPAREN LBRACE statement_list RBRACE
+   46        | IF LPAREN . condition RPAREN LBRACE statement_list RBRACE ELSE LBRACE statement_list RBRACE
+
+    MINUS       shift, and go to state 13
+    NOT         shift, and go to state 60
+    LPAREN      shift, and go to state 14
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
+
+    expression  go to state 61
+    T           go to state 25
+    F           go to state 26
+    condition   go to state 62
+
+
+state 37
+
+   47 while_stmt: WHILE LPAREN . condition RPAREN LBRACE statement_list RBRACE
+
+    MINUS       shift, and go to state 13
+    NOT         shift, and go to state 60
+    LPAREN      shift, and go to state 14
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
+
+    expression  go to state 61
+    T           go to state 25
+    F           go to state 26
+    condition   go to state 63
+
+
+state 38
+
+   48 for_stmt: FOR LPAREN . declaration_stmt condition SEMICOLON assign RPAREN LBRACE statement_list RBRACE
 
     INT          shift, and go to state 1
     FLOAT_TYPE   shift, and go to state 2
@@ -584,13 +618,13 @@ state 36
     CHAR_TYPE    shift, and go to state 4
     CONST        shift, and go to state 5
 
-    declaration_stmt  go to state 59
-    type              go to state 60
+    declaration_stmt  go to state 64
+    type              go to state 65
 
 
-state 37
+state 39
 
-   63 do_while_stmt: DO LBRACE . statement_list RBRACE WHILE LPAREN condition RPAREN SEMICOLON
+   65 do_while_stmt: DO LBRACE . statement_list RBRACE WHILE LPAREN condition RPAREN SEMICOLON
 
     INT          shift, and go to state 1
     FLOAT_TYPE   shift, and go to state 2
@@ -603,1016 +637,902 @@ state 37
     DO           shift, and go to state 9
     SWITCH       shift, and go to state 10
     RETURN       shift, and go to state 11
-    MINUS        shift, and go to state 12
-    LPAREN       shift, and go to state 13
-    IDENTIFIER   shift, and go to state 14
-    NUMBER       shift, and go to state 15
-    FLOAT        shift, and go to state 16
+    VOID_TYPE    shift, and go to state 12
+    MINUS        shift, and go to state 13
+    LPAREN       shift, and go to state 14
+    IDENTIFIER   shift, and go to state 15
+    NUMBER       shift, and go to state 16
+    FLOAT        shift, and go to state 17
 
-    statement_list    go to state 61
-    statement         go to state 19
-    declaration_stmt  go to state 20
-    type              go to state 21
-    assignment_stmt   go to state 22
-    expression        go to state 23
-    T                 go to state 24
-    F                 go to state 25
-    if_stmt           go to state 26
-    while_stmt        go to state 27
-    for_stmt          go to state 28
-    switch_stmt       go to state 29
-    function_decl     go to state 30
-    return_stmt       go to state 31
-    do_while_stmt     go to state 32
-
-
-state 38
-
-   48 switch_stmt: SWITCH LPAREN . IDENTIFIER RPAREN LBRACE case_list RBRACE
-   49            | SWITCH LPAREN . IDENTIFIER RPAREN LBRACE case_list default_case RBRACE
-
-    IDENTIFIER  shift, and go to state 62
-
-
-state 39
-
-   62 return_stmt: RETURN SEMICOLON .
-
-    $default  reduce using rule 62 (return_stmt)
+    statement_list    go to state 66
+    statement         go to state 20
+    declaration_stmt  go to state 21
+    type              go to state 22
+    assignment_stmt   go to state 23
+    expression        go to state 24
+    T                 go to state 25
+    F                 go to state 26
+    if_stmt           go to state 27
+    while_stmt        go to state 28
+    for_stmt          go to state 29
+    switch_stmt       go to state 30
+    function_decl     go to state 31
+    return_stmt       go to state 32
+    do_while_stmt     go to state 33
+    function_call     go to state 34
 
 
 state 40
 
-   32 F: IDENTIFIER .
+   49 switch_stmt: SWITCH LPAREN . IDENTIFIER RPAREN LBRACE case_list RBRACE
+   50            | SWITCH LPAREN . IDENTIFIER RPAREN LBRACE case_list default_case RBRACE
 
-    $default  reduce using rule 32 (F)
+    IDENTIFIER  shift, and go to state 67
 
 
 state 41
 
-   23 expression: expression . PLUS T
-   24           | expression . MINUS T
-   61 return_stmt: RETURN expression . SEMICOLON
+   64 return_stmt: RETURN SEMICOLON .
 
-    PLUS       shift, and go to state 48
-    MINUS      shift, and go to state 49
-    SEMICOLON  shift, and go to state 63
+    $default  reduce using rule 64 (return_stmt)
 
 
 state 42
 
-   31 F: MINUS F .
+   33 F: IDENTIFIER .
 
-    $default  reduce using rule 31 (F)
+    $default  reduce using rule 33 (F)
 
 
 state 43
 
-   23 expression: expression . PLUS T
-   24           | expression . MINUS T
-   30 F: LPAREN expression . RPAREN
+   24 expression: expression . PLUS T
+   25           | expression . MINUS T
+   63 return_stmt: RETURN expression . SEMICOLON
 
-    PLUS    shift, and go to state 48
-    MINUS   shift, and go to state 49
-    RPAREN  shift, and go to state 64
+    PLUS       shift, and go to state 52
+    MINUS      shift, and go to state 53
+    SEMICOLON  shift, and go to state 68
 
 
 state 44
 
-   21 assignment_stmt: IDENTIFIER ASSIGN . expression SEMICOLON
+   59 function_decl: VOID_TYPE IDENTIFIER . LPAREN parameter_list RPAREN LBRACE statement_list RBRACE
 
-    MINUS       shift, and go to state 12
-    LPAREN      shift, and go to state 13
-    IDENTIFIER  shift, and go to state 40
-    NUMBER      shift, and go to state 15
-    FLOAT       shift, and go to state 16
-
-    expression  go to state 65
-    T           go to state 24
-    F           go to state 25
+    LPAREN  shift, and go to state 69
 
 
 state 45
+
+   32 F: MINUS F .
+
+    $default  reduce using rule 32 (F)
+
+
+state 46
+
+   24 expression: expression . PLUS T
+   25           | expression . MINUS T
+   31 F: LPAREN expression . RPAREN
+
+    PLUS    shift, and go to state 52
+    MINUS   shift, and go to state 53
+    RPAREN  shift, and go to state 70
+
+
+state 47
+
+   22 assignment_stmt: IDENTIFIER ASSIGN . expression SEMICOLON
+
+    MINUS       shift, and go to state 13
+    LPAREN      shift, and go to state 14
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
+
+    expression  go to state 71
+    T           go to state 25
+    F           go to state 26
+
+
+state 48
+
+   66 function_call: IDENTIFIER LPAREN . argument_list RPAREN
+   67              | IDENTIFIER LPAREN . RPAREN
+
+    MINUS       shift, and go to state 13
+    LPAREN      shift, and go to state 14
+    RPAREN      shift, and go to state 72
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
+
+    expression     go to state 73
+    T              go to state 25
+    F              go to state 26
+    argument_list  go to state 74
+
+
+state 49
 
     0 $accept: program $end .
 
     $default  accept
 
 
-state 46
+state 50
 
     3 statement_list: statement_list statement .
 
     $default  reduce using rule 3 (statement_list)
 
 
-state 47
+state 51
 
-   14 declaration_stmt: type IDENTIFIER . SEMICOLON
-   16                 | type IDENTIFIER . ASSIGN expression SEMICOLON
-   56 function_decl: type IDENTIFIER . LPAREN parameter_list RPAREN LBRACE statement_list RBRACE
-   57              | type IDENTIFIER . LPAREN RPAREN LBRACE statement_list RBRACE
+   15 declaration_stmt: type IDENTIFIER . SEMICOLON
+   17                 | type IDENTIFIER . ASSIGN expression SEMICOLON
+   57 function_decl: type IDENTIFIER . LPAREN parameter_list RPAREN LBRACE statement_list RBRACE
+   58              | type IDENTIFIER . LPAREN RPAREN LBRACE statement_list RBRACE
 
-    ASSIGN     shift, and go to state 66
-    LPAREN     shift, and go to state 67
-    SEMICOLON  shift, and go to state 68
-
-
-state 48
-
-   23 expression: expression PLUS . T
-
-    MINUS       shift, and go to state 12
-    LPAREN      shift, and go to state 13
-    IDENTIFIER  shift, and go to state 40
-    NUMBER      shift, and go to state 15
-    FLOAT       shift, and go to state 16
-
-    T  go to state 69
-    F  go to state 25
+    ASSIGN     shift, and go to state 75
+    LPAREN     shift, and go to state 76
+    SEMICOLON  shift, and go to state 77
 
 
-state 49
+state 52
 
-   24 expression: expression MINUS . T
+   24 expression: expression PLUS . T
 
-    MINUS       shift, and go to state 12
-    LPAREN      shift, and go to state 13
-    IDENTIFIER  shift, and go to state 40
-    NUMBER      shift, and go to state 15
-    FLOAT       shift, and go to state 16
+    MINUS       shift, and go to state 13
+    LPAREN      shift, and go to state 14
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
 
-    T  go to state 70
-    F  go to state 25
+    T  go to state 78
+    F  go to state 26
 
 
-state 50
+state 53
+
+   25 expression: expression MINUS . T
+
+    MINUS       shift, and go to state 13
+    LPAREN      shift, and go to state 14
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
+
+    T  go to state 79
+    F  go to state 26
+
+
+state 54
 
     6 statement: expression SEMICOLON .
 
     $default  reduce using rule 6 (statement)
 
 
-state 51
-
-   26 T: T MULTIPLY . F
-
-    MINUS       shift, and go to state 12
-    LPAREN      shift, and go to state 13
-    IDENTIFIER  shift, and go to state 40
-    NUMBER      shift, and go to state 15
-    FLOAT       shift, and go to state 16
-
-    F  go to state 71
-
-
-state 52
-
-   27 T: T DIVIDE . F
-
-    MINUS       shift, and go to state 12
-    LPAREN      shift, and go to state 13
-    IDENTIFIER  shift, and go to state 40
-    NUMBER      shift, and go to state 15
-    FLOAT       shift, and go to state 16
-
-    F  go to state 72
-
-
-state 53
-
-   28 T: T MODULO . F
-
-    MINUS       shift, and go to state 12
-    LPAREN      shift, and go to state 13
-    IDENTIFIER  shift, and go to state 40
-    NUMBER      shift, and go to state 15
-    FLOAT       shift, and go to state 16
-
-    F  go to state 73
-
-
-state 54
-
-   15 declaration_stmt: CONST type IDENTIFIER . ASSIGN expression SEMICOLON
-
-    ASSIGN  shift, and go to state 74
-
-
 state 55
 
-   43 condition: NOT . expression
+   27 T: T MULTIPLY . F
 
-    MINUS       shift, and go to state 12
-    LPAREN      shift, and go to state 13
-    IDENTIFIER  shift, and go to state 40
-    NUMBER      shift, and go to state 15
-    FLOAT       shift, and go to state 16
+    MINUS       shift, and go to state 13
+    LPAREN      shift, and go to state 14
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
 
-    expression  go to state 75
-    T           go to state 24
-    F           go to state 25
+    F  go to state 80
 
 
 state 56
 
-   23 expression: expression . PLUS T
-   24           | expression . MINUS T
-   35 condition: expression . EQUAL expression
-   36          | expression . NOT_EQUAL expression
-   37          | expression . LESS_THAN expression
-   38          | expression . GREATER_THAN expression
-   39          | expression . LESS_EQUAL expression
-   40          | expression . GREATER_EQUAL expression
-   41          | expression . AND expression
-   42          | expression . OR expression
+   28 T: T DIVIDE . F
 
-    PLUS           shift, and go to state 48
-    MINUS          shift, and go to state 49
-    EQUAL          shift, and go to state 76
-    NOT_EQUAL      shift, and go to state 77
-    LESS_THAN      shift, and go to state 78
-    GREATER_THAN   shift, and go to state 79
-    LESS_EQUAL     shift, and go to state 80
-    GREATER_EQUAL  shift, and go to state 81
-    AND            shift, and go to state 82
-    OR             shift, and go to state 83
+    MINUS       shift, and go to state 13
+    LPAREN      shift, and go to state 14
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
+
+    F  go to state 81
 
 
 state 57
 
-   44 if_stmt: IF LPAREN condition . RPAREN LBRACE statement_list RBRACE
-   45        | IF LPAREN condition . RPAREN LBRACE statement_list RBRACE ELSE LBRACE statement_list RBRACE
+   29 T: T MODULO . F
 
-    RPAREN  shift, and go to state 84
+    MINUS       shift, and go to state 13
+    LPAREN      shift, and go to state 14
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
+
+    F  go to state 82
 
 
 state 58
 
-   46 while_stmt: WHILE LPAREN condition . RPAREN LBRACE statement_list RBRACE
+   14 statement: function_call SEMICOLON .
 
-    RPAREN  shift, and go to state 85
+    $default  reduce using rule 14 (statement)
 
 
 state 59
 
-   47 for_stmt: FOR LPAREN declaration_stmt . condition SEMICOLON assign RPAREN LBRACE statement_list RBRACE
+   16 declaration_stmt: CONST type IDENTIFIER . ASSIGN expression SEMICOLON
 
-    MINUS       shift, and go to state 12
-    NOT         shift, and go to state 55
-    LPAREN      shift, and go to state 13
-    IDENTIFIER  shift, and go to state 40
-    NUMBER      shift, and go to state 15
-    FLOAT       shift, and go to state 16
-
-    expression  go to state 56
-    T           go to state 24
-    F           go to state 25
-    condition   go to state 86
+    ASSIGN  shift, and go to state 83
 
 
 state 60
 
-   14 declaration_stmt: type . IDENTIFIER SEMICOLON
-   16                 | type . IDENTIFIER ASSIGN expression SEMICOLON
+   44 condition: NOT . expression
 
-    IDENTIFIER  shift, and go to state 87
+    MINUS       shift, and go to state 13
+    LPAREN      shift, and go to state 14
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
+
+    expression  go to state 84
+    T           go to state 25
+    F           go to state 26
 
 
 state 61
 
-    3 statement_list: statement_list . statement
-   63 do_while_stmt: DO LBRACE statement_list . RBRACE WHILE LPAREN condition RPAREN SEMICOLON
+   24 expression: expression . PLUS T
+   25           | expression . MINUS T
+   36 condition: expression . EQUAL expression
+   37          | expression . NOT_EQUAL expression
+   38          | expression . LESS_THAN expression
+   39          | expression . GREATER_THAN expression
+   40          | expression . LESS_EQUAL expression
+   41          | expression . GREATER_EQUAL expression
+   42          | expression . AND expression
+   43          | expression . OR expression
 
-    INT          shift, and go to state 1
-    FLOAT_TYPE   shift, and go to state 2
-    STRING_TYPE  shift, and go to state 3
-    CHAR_TYPE    shift, and go to state 4
-    CONST        shift, and go to state 5
-    IF           shift, and go to state 6
-    WHILE        shift, and go to state 7
-    FOR          shift, and go to state 8
-    DO           shift, and go to state 9
-    SWITCH       shift, and go to state 10
-    RETURN       shift, and go to state 11
-    MINUS        shift, and go to state 12
-    LPAREN       shift, and go to state 13
-    RBRACE       shift, and go to state 88
-    IDENTIFIER   shift, and go to state 14
-    NUMBER       shift, and go to state 15
-    FLOAT        shift, and go to state 16
-
-    statement         go to state 46
-    declaration_stmt  go to state 20
-    type              go to state 21
-    assignment_stmt   go to state 22
-    expression        go to state 23
-    T                 go to state 24
-    F                 go to state 25
-    if_stmt           go to state 26
-    while_stmt        go to state 27
-    for_stmt          go to state 28
-    switch_stmt       go to state 29
-    function_decl     go to state 30
-    return_stmt       go to state 31
-    do_while_stmt     go to state 32
+    PLUS           shift, and go to state 52
+    MINUS          shift, and go to state 53
+    EQUAL          shift, and go to state 85
+    NOT_EQUAL      shift, and go to state 86
+    LESS_THAN      shift, and go to state 87
+    GREATER_THAN   shift, and go to state 88
+    LESS_EQUAL     shift, and go to state 89
+    GREATER_EQUAL  shift, and go to state 90
+    AND            shift, and go to state 91
+    OR             shift, and go to state 92
 
 
 state 62
 
-   48 switch_stmt: SWITCH LPAREN IDENTIFIER . RPAREN LBRACE case_list RBRACE
-   49            | SWITCH LPAREN IDENTIFIER . RPAREN LBRACE case_list default_case RBRACE
+   45 if_stmt: IF LPAREN condition . RPAREN LBRACE statement_list RBRACE
+   46        | IF LPAREN condition . RPAREN LBRACE statement_list RBRACE ELSE LBRACE statement_list RBRACE
 
-    RPAREN  shift, and go to state 89
+    RPAREN  shift, and go to state 93
 
 
 state 63
 
-   61 return_stmt: RETURN expression SEMICOLON .
+   47 while_stmt: WHILE LPAREN condition . RPAREN LBRACE statement_list RBRACE
 
-    $default  reduce using rule 61 (return_stmt)
+    RPAREN  shift, and go to state 94
 
 
 state 64
 
-   30 F: LPAREN expression RPAREN .
+   48 for_stmt: FOR LPAREN declaration_stmt . condition SEMICOLON assign RPAREN LBRACE statement_list RBRACE
 
-    $default  reduce using rule 30 (F)
+    MINUS       shift, and go to state 13
+    NOT         shift, and go to state 60
+    LPAREN      shift, and go to state 14
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
+
+    expression  go to state 61
+    T           go to state 25
+    F           go to state 26
+    condition   go to state 95
 
 
 state 65
 
-   21 assignment_stmt: IDENTIFIER ASSIGN expression . SEMICOLON
-   23 expression: expression . PLUS T
-   24           | expression . MINUS T
+   15 declaration_stmt: type . IDENTIFIER SEMICOLON
+   17                 | type . IDENTIFIER ASSIGN expression SEMICOLON
 
-    PLUS       shift, and go to state 48
-    MINUS      shift, and go to state 49
-    SEMICOLON  shift, and go to state 90
+    IDENTIFIER  shift, and go to state 96
 
 
 state 66
 
-   16 declaration_stmt: type IDENTIFIER ASSIGN . expression SEMICOLON
+    3 statement_list: statement_list . statement
+   65 do_while_stmt: DO LBRACE statement_list . RBRACE WHILE LPAREN condition RPAREN SEMICOLON
 
-    MINUS       shift, and go to state 12
-    LPAREN      shift, and go to state 13
-    IDENTIFIER  shift, and go to state 40
-    NUMBER      shift, and go to state 15
-    FLOAT       shift, and go to state 16
+    INT          shift, and go to state 1
+    FLOAT_TYPE   shift, and go to state 2
+    STRING_TYPE  shift, and go to state 3
+    CHAR_TYPE    shift, and go to state 4
+    CONST        shift, and go to state 5
+    IF           shift, and go to state 6
+    WHILE        shift, and go to state 7
+    FOR          shift, and go to state 8
+    DO           shift, and go to state 9
+    SWITCH       shift, and go to state 10
+    RETURN       shift, and go to state 11
+    VOID_TYPE    shift, and go to state 12
+    MINUS        shift, and go to state 13
+    LPAREN       shift, and go to state 14
+    RBRACE       shift, and go to state 97
+    IDENTIFIER   shift, and go to state 15
+    NUMBER       shift, and go to state 16
+    FLOAT        shift, and go to state 17
 
-    expression  go to state 91
-    T           go to state 24
-    F           go to state 25
+    statement         go to state 50
+    declaration_stmt  go to state 21
+    type              go to state 22
+    assignment_stmt   go to state 23
+    expression        go to state 24
+    T                 go to state 25
+    F                 go to state 26
+    if_stmt           go to state 27
+    while_stmt        go to state 28
+    for_stmt          go to state 29
+    switch_stmt       go to state 30
+    function_decl     go to state 31
+    return_stmt       go to state 32
+    do_while_stmt     go to state 33
+    function_call     go to state 34
 
 
 state 67
 
-   56 function_decl: type IDENTIFIER LPAREN . parameter_list RPAREN LBRACE statement_list RBRACE
-   57              | type IDENTIFIER LPAREN . RPAREN LBRACE statement_list RBRACE
+   49 switch_stmt: SWITCH LPAREN IDENTIFIER . RPAREN LBRACE case_list RBRACE
+   50            | SWITCH LPAREN IDENTIFIER . RPAREN LBRACE case_list default_case RBRACE
 
-    INT          shift, and go to state 1
-    FLOAT_TYPE   shift, and go to state 2
-    STRING_TYPE  shift, and go to state 3
-    CHAR_TYPE    shift, and go to state 4
-    RPAREN       shift, and go to state 92
-
-    type            go to state 93
-    parameter_list  go to state 94
-    parameter       go to state 95
+    RPAREN  shift, and go to state 98
 
 
 state 68
 
-   14 declaration_stmt: type IDENTIFIER SEMICOLON .
+   63 return_stmt: RETURN expression SEMICOLON .
 
-    $default  reduce using rule 14 (declaration_stmt)
+    $default  reduce using rule 63 (return_stmt)
 
 
 state 69
 
-   23 expression: expression PLUS T .
-   26 T: T . MULTIPLY F
-   27  | T . DIVIDE F
-   28  | T . MODULO F
+   59 function_decl: VOID_TYPE IDENTIFIER LPAREN . parameter_list RPAREN LBRACE statement_list RBRACE
 
-    MULTIPLY  shift, and go to state 51
-    DIVIDE    shift, and go to state 52
-    MODULO    shift, and go to state 53
+    INT          shift, and go to state 1
+    FLOAT_TYPE   shift, and go to state 2
+    STRING_TYPE  shift, and go to state 3
+    CHAR_TYPE    shift, and go to state 4
 
-    $default  reduce using rule 23 (expression)
+    type            go to state 99
+    parameter_list  go to state 100
+    parameter       go to state 101
 
 
 state 70
 
-   24 expression: expression MINUS T .
-   26 T: T . MULTIPLY F
-   27  | T . DIVIDE F
-   28  | T . MODULO F
+   31 F: LPAREN expression RPAREN .
 
-    MULTIPLY  shift, and go to state 51
-    DIVIDE    shift, and go to state 52
-    MODULO    shift, and go to state 53
-
-    $default  reduce using rule 24 (expression)
+    $default  reduce using rule 31 (F)
 
 
 state 71
 
-   26 T: T MULTIPLY F .
+   22 assignment_stmt: IDENTIFIER ASSIGN expression . SEMICOLON
+   24 expression: expression . PLUS T
+   25           | expression . MINUS T
 
-    $default  reduce using rule 26 (T)
+    PLUS       shift, and go to state 52
+    MINUS      shift, and go to state 53
+    SEMICOLON  shift, and go to state 102
 
 
 state 72
 
-   27 T: T DIVIDE F .
+   67 function_call: IDENTIFIER LPAREN RPAREN .
 
-    $default  reduce using rule 27 (T)
+    $default  reduce using rule 67 (function_call)
 
 
 state 73
 
-   28 T: T MODULO F .
+   24 expression: expression . PLUS T
+   25           | expression . MINUS T
+   68 argument_list: expression .
 
-    $default  reduce using rule 28 (T)
+    PLUS   shift, and go to state 52
+    MINUS  shift, and go to state 53
+
+    $default  reduce using rule 68 (argument_list)
 
 
 state 74
 
-   15 declaration_stmt: CONST type IDENTIFIER ASSIGN . expression SEMICOLON
+   66 function_call: IDENTIFIER LPAREN argument_list . RPAREN
+   69 argument_list: argument_list . COMMA expression
 
-    MINUS       shift, and go to state 12
-    LPAREN      shift, and go to state 13
-    IDENTIFIER  shift, and go to state 40
-    NUMBER      shift, and go to state 15
-    FLOAT       shift, and go to state 16
-
-    expression  go to state 96
-    T           go to state 24
-    F           go to state 25
+    RPAREN  shift, and go to state 103
+    COMMA   shift, and go to state 104
 
 
 state 75
 
-   23 expression: expression . PLUS T
-   24           | expression . MINUS T
-   43 condition: NOT expression .
+   17 declaration_stmt: type IDENTIFIER ASSIGN . expression SEMICOLON
 
-    PLUS   shift, and go to state 48
-    MINUS  shift, and go to state 49
+    MINUS       shift, and go to state 13
+    LPAREN      shift, and go to state 14
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
 
-    $default  reduce using rule 43 (condition)
+    expression  go to state 105
+    T           go to state 25
+    F           go to state 26
 
 
 state 76
 
-   35 condition: expression EQUAL . expression
+   57 function_decl: type IDENTIFIER LPAREN . parameter_list RPAREN LBRACE statement_list RBRACE
+   58              | type IDENTIFIER LPAREN . RPAREN LBRACE statement_list RBRACE
 
-    MINUS       shift, and go to state 12
-    LPAREN      shift, and go to state 13
-    IDENTIFIER  shift, and go to state 40
-    NUMBER      shift, and go to state 15
-    FLOAT       shift, and go to state 16
+    INT          shift, and go to state 1
+    FLOAT_TYPE   shift, and go to state 2
+    STRING_TYPE  shift, and go to state 3
+    CHAR_TYPE    shift, and go to state 4
+    RPAREN       shift, and go to state 106
 
-    expression  go to state 97
-    T           go to state 24
-    F           go to state 25
+    type            go to state 99
+    parameter_list  go to state 107
+    parameter       go to state 101
 
 
 state 77
 
-   36 condition: expression NOT_EQUAL . expression
-
-    MINUS       shift, and go to state 12
-    LPAREN      shift, and go to state 13
-    IDENTIFIER  shift, and go to state 40
-    NUMBER      shift, and go to state 15
-    FLOAT       shift, and go to state 16
-
-    expression  go to state 98
-    T           go to state 24
-    F           go to state 25
-
-
-state 78
-
-   37 condition: expression LESS_THAN . expression
-
-    MINUS       shift, and go to state 12
-    LPAREN      shift, and go to state 13
-    IDENTIFIER  shift, and go to state 40
-    NUMBER      shift, and go to state 15
-    FLOAT       shift, and go to state 16
-
-    expression  go to state 99
-    T           go to state 24
-    F           go to state 25
-
-
-state 79
-
-   38 condition: expression GREATER_THAN . expression
-
-    MINUS       shift, and go to state 12
-    LPAREN      shift, and go to state 13
-    IDENTIFIER  shift, and go to state 40
-    NUMBER      shift, and go to state 15
-    FLOAT       shift, and go to state 16
-
-    expression  go to state 100
-    T           go to state 24
-    F           go to state 25
-
-
-state 80
-
-   39 condition: expression LESS_EQUAL . expression
-
-    MINUS       shift, and go to state 12
-    LPAREN      shift, and go to state 13
-    IDENTIFIER  shift, and go to state 40
-    NUMBER      shift, and go to state 15
-    FLOAT       shift, and go to state 16
-
-    expression  go to state 101
-    T           go to state 24
-    F           go to state 25
-
-
-state 81
-
-   40 condition: expression GREATER_EQUAL . expression
-
-    MINUS       shift, and go to state 12
-    LPAREN      shift, and go to state 13
-    IDENTIFIER  shift, and go to state 40
-    NUMBER      shift, and go to state 15
-    FLOAT       shift, and go to state 16
-
-    expression  go to state 102
-    T           go to state 24
-    F           go to state 25
-
-
-state 82
-
-   41 condition: expression AND . expression
-
-    MINUS       shift, and go to state 12
-    LPAREN      shift, and go to state 13
-    IDENTIFIER  shift, and go to state 40
-    NUMBER      shift, and go to state 15
-    FLOAT       shift, and go to state 16
-
-    expression  go to state 103
-    T           go to state 24
-    F           go to state 25
-
-
-state 83
-
-   42 condition: expression OR . expression
-
-    MINUS       shift, and go to state 12
-    LPAREN      shift, and go to state 13
-    IDENTIFIER  shift, and go to state 40
-    NUMBER      shift, and go to state 15
-    FLOAT       shift, and go to state 16
-
-    expression  go to state 104
-    T           go to state 24
-    F           go to state 25
-
-
-state 84
-
-   44 if_stmt: IF LPAREN condition RPAREN . LBRACE statement_list RBRACE
-   45        | IF LPAREN condition RPAREN . LBRACE statement_list RBRACE ELSE LBRACE statement_list RBRACE
-
-    LBRACE  shift, and go to state 105
-
-
-state 85
-
-   46 while_stmt: WHILE LPAREN condition RPAREN . LBRACE statement_list RBRACE
-
-    LBRACE  shift, and go to state 106
-
-
-state 86
-
-   47 for_stmt: FOR LPAREN declaration_stmt condition . SEMICOLON assign RPAREN LBRACE statement_list RBRACE
-
-    SEMICOLON  shift, and go to state 107
-
-
-state 87
-
-   14 declaration_stmt: type IDENTIFIER . SEMICOLON
-   16                 | type IDENTIFIER . ASSIGN expression SEMICOLON
-
-    ASSIGN     shift, and go to state 66
-    SEMICOLON  shift, and go to state 68
-
-
-state 88
-
-   63 do_while_stmt: DO LBRACE statement_list RBRACE . WHILE LPAREN condition RPAREN SEMICOLON
-
-    WHILE  shift, and go to state 108
-
-
-state 89
-
-   48 switch_stmt: SWITCH LPAREN IDENTIFIER RPAREN . LBRACE case_list RBRACE
-   49            | SWITCH LPAREN IDENTIFIER RPAREN . LBRACE case_list default_case RBRACE
-
-    LBRACE  shift, and go to state 109
-
-
-state 90
-
-   21 assignment_stmt: IDENTIFIER ASSIGN expression SEMICOLON .
-
-    $default  reduce using rule 21 (assignment_stmt)
-
-
-state 91
-
-   16 declaration_stmt: type IDENTIFIER ASSIGN expression . SEMICOLON
-   23 expression: expression . PLUS T
-   24           | expression . MINUS T
-
-    PLUS       shift, and go to state 48
-    MINUS      shift, and go to state 49
-    SEMICOLON  shift, and go to state 110
-
-
-state 92
-
-   57 function_decl: type IDENTIFIER LPAREN RPAREN . LBRACE statement_list RBRACE
-
-    LBRACE  shift, and go to state 111
-
-
-state 93
-
-   60 parameter: type . IDENTIFIER
-
-    IDENTIFIER  shift, and go to state 112
-
-
-state 94
-
-   56 function_decl: type IDENTIFIER LPAREN parameter_list . RPAREN LBRACE statement_list RBRACE
-   59 parameter_list: parameter_list . COMMA parameter
-
-    RPAREN  shift, and go to state 113
-    COMMA   shift, and go to state 114
-
-
-state 95
-
-   58 parameter_list: parameter .
-
-    $default  reduce using rule 58 (parameter_list)
-
-
-state 96
-
-   15 declaration_stmt: CONST type IDENTIFIER ASSIGN expression . SEMICOLON
-   23 expression: expression . PLUS T
-   24           | expression . MINUS T
-
-    PLUS       shift, and go to state 48
-    MINUS      shift, and go to state 49
-    SEMICOLON  shift, and go to state 115
-
-
-state 97
-
-   23 expression: expression . PLUS T
-   24           | expression . MINUS T
-   35 condition: expression EQUAL expression .
-
-    PLUS   shift, and go to state 48
-    MINUS  shift, and go to state 49
-
-    $default  reduce using rule 35 (condition)
-
-
-state 98
-
-   23 expression: expression . PLUS T
-   24           | expression . MINUS T
-   36 condition: expression NOT_EQUAL expression .
-
-    PLUS   shift, and go to state 48
-    MINUS  shift, and go to state 49
-
-    $default  reduce using rule 36 (condition)
-
-
-state 99
-
-   23 expression: expression . PLUS T
-   24           | expression . MINUS T
-   37 condition: expression LESS_THAN expression .
-
-    PLUS   shift, and go to state 48
-    MINUS  shift, and go to state 49
-
-    $default  reduce using rule 37 (condition)
-
-
-state 100
-
-   23 expression: expression . PLUS T
-   24           | expression . MINUS T
-   38 condition: expression GREATER_THAN expression .
-
-    PLUS   shift, and go to state 48
-    MINUS  shift, and go to state 49
-
-    $default  reduce using rule 38 (condition)
-
-
-state 101
-
-   23 expression: expression . PLUS T
-   24           | expression . MINUS T
-   39 condition: expression LESS_EQUAL expression .
-
-    PLUS   shift, and go to state 48
-    MINUS  shift, and go to state 49
-
-    $default  reduce using rule 39 (condition)
-
-
-state 102
-
-   23 expression: expression . PLUS T
-   24           | expression . MINUS T
-   40 condition: expression GREATER_EQUAL expression .
-
-    PLUS   shift, and go to state 48
-    MINUS  shift, and go to state 49
-
-    $default  reduce using rule 40 (condition)
-
-
-state 103
-
-   23 expression: expression . PLUS T
-   24           | expression . MINUS T
-   41 condition: expression AND expression .
-
-    PLUS   shift, and go to state 48
-    MINUS  shift, and go to state 49
-
-    $default  reduce using rule 41 (condition)
-
-
-state 104
-
-   23 expression: expression . PLUS T
-   24           | expression . MINUS T
-   42 condition: expression OR expression .
-
-    PLUS   shift, and go to state 48
-    MINUS  shift, and go to state 49
-
-    $default  reduce using rule 42 (condition)
-
-
-state 105
-
-   44 if_stmt: IF LPAREN condition RPAREN LBRACE . statement_list RBRACE
-   45        | IF LPAREN condition RPAREN LBRACE . statement_list RBRACE ELSE LBRACE statement_list RBRACE
-
-    INT          shift, and go to state 1
-    FLOAT_TYPE   shift, and go to state 2
-    STRING_TYPE  shift, and go to state 3
-    CHAR_TYPE    shift, and go to state 4
-    CONST        shift, and go to state 5
-    IF           shift, and go to state 6
-    WHILE        shift, and go to state 7
-    FOR          shift, and go to state 8
-    DO           shift, and go to state 9
-    SWITCH       shift, and go to state 10
-    RETURN       shift, and go to state 11
-    MINUS        shift, and go to state 12
-    LPAREN       shift, and go to state 13
-    IDENTIFIER   shift, and go to state 14
-    NUMBER       shift, and go to state 15
-    FLOAT        shift, and go to state 16
-
-    statement_list    go to state 116
-    statement         go to state 19
-    declaration_stmt  go to state 20
-    type              go to state 21
-    assignment_stmt   go to state 22
-    expression        go to state 23
-    T                 go to state 24
-    F                 go to state 25
-    if_stmt           go to state 26
-    while_stmt        go to state 27
-    for_stmt          go to state 28
-    switch_stmt       go to state 29
-    function_decl     go to state 30
-    return_stmt       go to state 31
-    do_while_stmt     go to state 32
-
-
-state 106
-
-   46 while_stmt: WHILE LPAREN condition RPAREN LBRACE . statement_list RBRACE
-
-    INT          shift, and go to state 1
-    FLOAT_TYPE   shift, and go to state 2
-    STRING_TYPE  shift, and go to state 3
-    CHAR_TYPE    shift, and go to state 4
-    CONST        shift, and go to state 5
-    IF           shift, and go to state 6
-    WHILE        shift, and go to state 7
-    FOR          shift, and go to state 8
-    DO           shift, and go to state 9
-    SWITCH       shift, and go to state 10
-    RETURN       shift, and go to state 11
-    MINUS        shift, and go to state 12
-    LPAREN       shift, and go to state 13
-    IDENTIFIER   shift, and go to state 14
-    NUMBER       shift, and go to state 15
-    FLOAT        shift, and go to state 16
-
-    statement_list    go to state 117
-    statement         go to state 19
-    declaration_stmt  go to state 20
-    type              go to state 21
-    assignment_stmt   go to state 22
-    expression        go to state 23
-    T                 go to state 24
-    F                 go to state 25
-    if_stmt           go to state 26
-    while_stmt        go to state 27
-    for_stmt          go to state 28
-    switch_stmt       go to state 29
-    function_decl     go to state 30
-    return_stmt       go to state 31
-    do_while_stmt     go to state 32
-
-
-state 107
-
-   47 for_stmt: FOR LPAREN declaration_stmt condition SEMICOLON . assign RPAREN LBRACE statement_list RBRACE
-
-    IDENTIFIER  shift, and go to state 118
-
-    assign  go to state 119
-
-
-state 108
-
-   63 do_while_stmt: DO LBRACE statement_list RBRACE WHILE . LPAREN condition RPAREN SEMICOLON
-
-    LPAREN  shift, and go to state 120
-
-
-state 109
-
-   48 switch_stmt: SWITCH LPAREN IDENTIFIER RPAREN LBRACE . case_list RBRACE
-   49            | SWITCH LPAREN IDENTIFIER RPAREN LBRACE . case_list default_case RBRACE
-
-    CASE  shift, and go to state 121
-
-    case_list  go to state 122
-    case_stmt  go to state 123
-
-
-state 110
-
-   16 declaration_stmt: type IDENTIFIER ASSIGN expression SEMICOLON .
-
-    $default  reduce using rule 16 (declaration_stmt)
-
-
-state 111
-
-   57 function_decl: type IDENTIFIER LPAREN RPAREN LBRACE . statement_list RBRACE
-
-    INT          shift, and go to state 1
-    FLOAT_TYPE   shift, and go to state 2
-    STRING_TYPE  shift, and go to state 3
-    CHAR_TYPE    shift, and go to state 4
-    CONST        shift, and go to state 5
-    IF           shift, and go to state 6
-    WHILE        shift, and go to state 7
-    FOR          shift, and go to state 8
-    DO           shift, and go to state 9
-    SWITCH       shift, and go to state 10
-    RETURN       shift, and go to state 11
-    MINUS        shift, and go to state 12
-    LPAREN       shift, and go to state 13
-    IDENTIFIER   shift, and go to state 14
-    NUMBER       shift, and go to state 15
-    FLOAT        shift, and go to state 16
-
-    statement_list    go to state 124
-    statement         go to state 19
-    declaration_stmt  go to state 20
-    type              go to state 21
-    assignment_stmt   go to state 22
-    expression        go to state 23
-    T                 go to state 24
-    F                 go to state 25
-    if_stmt           go to state 26
-    while_stmt        go to state 27
-    for_stmt          go to state 28
-    switch_stmt       go to state 29
-    function_decl     go to state 30
-    return_stmt       go to state 31
-    do_while_stmt     go to state 32
-
-
-state 112
-
-   60 parameter: type IDENTIFIER .
-
-    $default  reduce using rule 60 (parameter)
-
-
-state 113
-
-   56 function_decl: type IDENTIFIER LPAREN parameter_list RPAREN . LBRACE statement_list RBRACE
-
-    LBRACE  shift, and go to state 125
-
-
-state 114
-
-   59 parameter_list: parameter_list COMMA . parameter
-
-    INT          shift, and go to state 1
-    FLOAT_TYPE   shift, and go to state 2
-    STRING_TYPE  shift, and go to state 3
-    CHAR_TYPE    shift, and go to state 4
-
-    type       go to state 93
-    parameter  go to state 126
-
-
-state 115
-
-   15 declaration_stmt: CONST type IDENTIFIER ASSIGN expression SEMICOLON .
+   15 declaration_stmt: type IDENTIFIER SEMICOLON .
 
     $default  reduce using rule 15 (declaration_stmt)
 
 
+state 78
+
+   24 expression: expression PLUS T .
+   27 T: T . MULTIPLY F
+   28  | T . DIVIDE F
+   29  | T . MODULO F
+
+    MULTIPLY  shift, and go to state 55
+    DIVIDE    shift, and go to state 56
+    MODULO    shift, and go to state 57
+
+    $default  reduce using rule 24 (expression)
+
+
+state 79
+
+   25 expression: expression MINUS T .
+   27 T: T . MULTIPLY F
+   28  | T . DIVIDE F
+   29  | T . MODULO F
+
+    MULTIPLY  shift, and go to state 55
+    DIVIDE    shift, and go to state 56
+    MODULO    shift, and go to state 57
+
+    $default  reduce using rule 25 (expression)
+
+
+state 80
+
+   27 T: T MULTIPLY F .
+
+    $default  reduce using rule 27 (T)
+
+
+state 81
+
+   28 T: T DIVIDE F .
+
+    $default  reduce using rule 28 (T)
+
+
+state 82
+
+   29 T: T MODULO F .
+
+    $default  reduce using rule 29 (T)
+
+
+state 83
+
+   16 declaration_stmt: CONST type IDENTIFIER ASSIGN . expression SEMICOLON
+
+    MINUS       shift, and go to state 13
+    LPAREN      shift, and go to state 14
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
+
+    expression  go to state 108
+    T           go to state 25
+    F           go to state 26
+
+
+state 84
+
+   24 expression: expression . PLUS T
+   25           | expression . MINUS T
+   44 condition: NOT expression .
+
+    PLUS   shift, and go to state 52
+    MINUS  shift, and go to state 53
+
+    $default  reduce using rule 44 (condition)
+
+
+state 85
+
+   36 condition: expression EQUAL . expression
+
+    MINUS       shift, and go to state 13
+    LPAREN      shift, and go to state 14
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
+
+    expression  go to state 109
+    T           go to state 25
+    F           go to state 26
+
+
+state 86
+
+   37 condition: expression NOT_EQUAL . expression
+
+    MINUS       shift, and go to state 13
+    LPAREN      shift, and go to state 14
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
+
+    expression  go to state 110
+    T           go to state 25
+    F           go to state 26
+
+
+state 87
+
+   38 condition: expression LESS_THAN . expression
+
+    MINUS       shift, and go to state 13
+    LPAREN      shift, and go to state 14
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
+
+    expression  go to state 111
+    T           go to state 25
+    F           go to state 26
+
+
+state 88
+
+   39 condition: expression GREATER_THAN . expression
+
+    MINUS       shift, and go to state 13
+    LPAREN      shift, and go to state 14
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
+
+    expression  go to state 112
+    T           go to state 25
+    F           go to state 26
+
+
+state 89
+
+   40 condition: expression LESS_EQUAL . expression
+
+    MINUS       shift, and go to state 13
+    LPAREN      shift, and go to state 14
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
+
+    expression  go to state 113
+    T           go to state 25
+    F           go to state 26
+
+
+state 90
+
+   41 condition: expression GREATER_EQUAL . expression
+
+    MINUS       shift, and go to state 13
+    LPAREN      shift, and go to state 14
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
+
+    expression  go to state 114
+    T           go to state 25
+    F           go to state 26
+
+
+state 91
+
+   42 condition: expression AND . expression
+
+    MINUS       shift, and go to state 13
+    LPAREN      shift, and go to state 14
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
+
+    expression  go to state 115
+    T           go to state 25
+    F           go to state 26
+
+
+state 92
+
+   43 condition: expression OR . expression
+
+    MINUS       shift, and go to state 13
+    LPAREN      shift, and go to state 14
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
+
+    expression  go to state 116
+    T           go to state 25
+    F           go to state 26
+
+
+state 93
+
+   45 if_stmt: IF LPAREN condition RPAREN . LBRACE statement_list RBRACE
+   46        | IF LPAREN condition RPAREN . LBRACE statement_list RBRACE ELSE LBRACE statement_list RBRACE
+
+    LBRACE  shift, and go to state 117
+
+
+state 94
+
+   47 while_stmt: WHILE LPAREN condition RPAREN . LBRACE statement_list RBRACE
+
+    LBRACE  shift, and go to state 118
+
+
+state 95
+
+   48 for_stmt: FOR LPAREN declaration_stmt condition . SEMICOLON assign RPAREN LBRACE statement_list RBRACE
+
+    SEMICOLON  shift, and go to state 119
+
+
+state 96
+
+   15 declaration_stmt: type IDENTIFIER . SEMICOLON
+   17                 | type IDENTIFIER . ASSIGN expression SEMICOLON
+
+    ASSIGN     shift, and go to state 75
+    SEMICOLON  shift, and go to state 77
+
+
+state 97
+
+   65 do_while_stmt: DO LBRACE statement_list RBRACE . WHILE LPAREN condition RPAREN SEMICOLON
+
+    WHILE  shift, and go to state 120
+
+
+state 98
+
+   49 switch_stmt: SWITCH LPAREN IDENTIFIER RPAREN . LBRACE case_list RBRACE
+   50            | SWITCH LPAREN IDENTIFIER RPAREN . LBRACE case_list default_case RBRACE
+
+    LBRACE  shift, and go to state 121
+
+
+state 99
+
+   62 parameter: type . IDENTIFIER
+
+    IDENTIFIER  shift, and go to state 122
+
+
+state 100
+
+   59 function_decl: VOID_TYPE IDENTIFIER LPAREN parameter_list . RPAREN LBRACE statement_list RBRACE
+   61 parameter_list: parameter_list . COMMA parameter
+
+    RPAREN  shift, and go to state 123
+    COMMA   shift, and go to state 124
+
+
+state 101
+
+   60 parameter_list: parameter .
+
+    $default  reduce using rule 60 (parameter_list)
+
+
+state 102
+
+   22 assignment_stmt: IDENTIFIER ASSIGN expression SEMICOLON .
+
+    $default  reduce using rule 22 (assignment_stmt)
+
+
+state 103
+
+   66 function_call: IDENTIFIER LPAREN argument_list RPAREN .
+
+    $default  reduce using rule 66 (function_call)
+
+
+state 104
+
+   69 argument_list: argument_list COMMA . expression
+
+    MINUS       shift, and go to state 13
+    LPAREN      shift, and go to state 14
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
+
+    expression  go to state 125
+    T           go to state 25
+    F           go to state 26
+
+
+state 105
+
+   17 declaration_stmt: type IDENTIFIER ASSIGN expression . SEMICOLON
+   24 expression: expression . PLUS T
+   25           | expression . MINUS T
+
+    PLUS       shift, and go to state 52
+    MINUS      shift, and go to state 53
+    SEMICOLON  shift, and go to state 126
+
+
+state 106
+
+   58 function_decl: type IDENTIFIER LPAREN RPAREN . LBRACE statement_list RBRACE
+
+    LBRACE  shift, and go to state 127
+
+
+state 107
+
+   57 function_decl: type IDENTIFIER LPAREN parameter_list . RPAREN LBRACE statement_list RBRACE
+   61 parameter_list: parameter_list . COMMA parameter
+
+    RPAREN  shift, and go to state 128
+    COMMA   shift, and go to state 124
+
+
+state 108
+
+   16 declaration_stmt: CONST type IDENTIFIER ASSIGN expression . SEMICOLON
+   24 expression: expression . PLUS T
+   25           | expression . MINUS T
+
+    PLUS       shift, and go to state 52
+    MINUS      shift, and go to state 53
+    SEMICOLON  shift, and go to state 129
+
+
+state 109
+
+   24 expression: expression . PLUS T
+   25           | expression . MINUS T
+   36 condition: expression EQUAL expression .
+
+    PLUS   shift, and go to state 52
+    MINUS  shift, and go to state 53
+
+    $default  reduce using rule 36 (condition)
+
+
+state 110
+
+   24 expression: expression . PLUS T
+   25           | expression . MINUS T
+   37 condition: expression NOT_EQUAL expression .
+
+    PLUS   shift, and go to state 52
+    MINUS  shift, and go to state 53
+
+    $default  reduce using rule 37 (condition)
+
+
+state 111
+
+   24 expression: expression . PLUS T
+   25           | expression . MINUS T
+   38 condition: expression LESS_THAN expression .
+
+    PLUS   shift, and go to state 52
+    MINUS  shift, and go to state 53
+
+    $default  reduce using rule 38 (condition)
+
+
+state 112
+
+   24 expression: expression . PLUS T
+   25           | expression . MINUS T
+   39 condition: expression GREATER_THAN expression .
+
+    PLUS   shift, and go to state 52
+    MINUS  shift, and go to state 53
+
+    $default  reduce using rule 39 (condition)
+
+
+state 113
+
+   24 expression: expression . PLUS T
+   25           | expression . MINUS T
+   40 condition: expression LESS_EQUAL expression .
+
+    PLUS   shift, and go to state 52
+    MINUS  shift, and go to state 53
+
+    $default  reduce using rule 40 (condition)
+
+
+state 114
+
+   24 expression: expression . PLUS T
+   25           | expression . MINUS T
+   41 condition: expression GREATER_EQUAL expression .
+
+    PLUS   shift, and go to state 52
+    MINUS  shift, and go to state 53
+
+    $default  reduce using rule 41 (condition)
+
+
+state 115
+
+   24 expression: expression . PLUS T
+   25           | expression . MINUS T
+   42 condition: expression AND expression .
+
+    PLUS   shift, and go to state 52
+    MINUS  shift, and go to state 53
+
+    $default  reduce using rule 42 (condition)
+
+
 state 116
 
-    3 statement_list: statement_list . statement
-   44 if_stmt: IF LPAREN condition RPAREN LBRACE statement_list . RBRACE
-   45        | IF LPAREN condition RPAREN LBRACE statement_list . RBRACE ELSE LBRACE statement_list RBRACE
+   24 expression: expression . PLUS T
+   25           | expression . MINUS T
+   43 condition: expression OR expression .
 
-    INT          shift, and go to state 1
-    FLOAT_TYPE   shift, and go to state 2
-    STRING_TYPE  shift, and go to state 3
-    CHAR_TYPE    shift, and go to state 4
-    CONST        shift, and go to state 5
-    IF           shift, and go to state 6
-    WHILE        shift, and go to state 7
-    FOR          shift, and go to state 8
-    DO           shift, and go to state 9
-    SWITCH       shift, and go to state 10
-    RETURN       shift, and go to state 11
-    MINUS        shift, and go to state 12
-    LPAREN       shift, and go to state 13
-    RBRACE       shift, and go to state 127
-    IDENTIFIER   shift, and go to state 14
-    NUMBER       shift, and go to state 15
-    FLOAT        shift, and go to state 16
+    PLUS   shift, and go to state 52
+    MINUS  shift, and go to state 53
 
-    statement         go to state 46
-    declaration_stmt  go to state 20
-    type              go to state 21
-    assignment_stmt   go to state 22
-    expression        go to state 23
-    T                 go to state 24
-    F                 go to state 25
-    if_stmt           go to state 26
-    while_stmt        go to state 27
-    for_stmt          go to state 28
-    switch_stmt       go to state 29
-    function_decl     go to state 30
-    return_stmt       go to state 31
-    do_while_stmt     go to state 32
+    $default  reduce using rule 43 (condition)
 
 
 state 117
 
-    3 statement_list: statement_list . statement
-   46 while_stmt: WHILE LPAREN condition RPAREN LBRACE statement_list . RBRACE
+   45 if_stmt: IF LPAREN condition RPAREN LBRACE . statement_list RBRACE
+   46        | IF LPAREN condition RPAREN LBRACE . statement_list RBRACE ELSE LBRACE statement_list RBRACE
 
     INT          shift, and go to state 1
     FLOAT_TYPE   shift, and go to state 2
@@ -1625,279 +1545,352 @@ state 117
     DO           shift, and go to state 9
     SWITCH       shift, and go to state 10
     RETURN       shift, and go to state 11
-    MINUS        shift, and go to state 12
-    LPAREN       shift, and go to state 13
-    RBRACE       shift, and go to state 128
-    IDENTIFIER   shift, and go to state 14
-    NUMBER       shift, and go to state 15
-    FLOAT        shift, and go to state 16
+    VOID_TYPE    shift, and go to state 12
+    MINUS        shift, and go to state 13
+    LPAREN       shift, and go to state 14
+    IDENTIFIER   shift, and go to state 15
+    NUMBER       shift, and go to state 16
+    FLOAT        shift, and go to state 17
 
-    statement         go to state 46
-    declaration_stmt  go to state 20
-    type              go to state 21
-    assignment_stmt   go to state 22
-    expression        go to state 23
-    T                 go to state 24
-    F                 go to state 25
-    if_stmt           go to state 26
-    while_stmt        go to state 27
-    for_stmt          go to state 28
-    switch_stmt       go to state 29
-    function_decl     go to state 30
-    return_stmt       go to state 31
-    do_while_stmt     go to state 32
+    statement_list    go to state 130
+    statement         go to state 20
+    declaration_stmt  go to state 21
+    type              go to state 22
+    assignment_stmt   go to state 23
+    expression        go to state 24
+    T                 go to state 25
+    F                 go to state 26
+    if_stmt           go to state 27
+    while_stmt        go to state 28
+    for_stmt          go to state 29
+    switch_stmt       go to state 30
+    function_decl     go to state 31
+    return_stmt       go to state 32
+    do_while_stmt     go to state 33
+    function_call     go to state 34
 
 
 state 118
 
-   22 assign: IDENTIFIER . ASSIGN expression
+   47 while_stmt: WHILE LPAREN condition RPAREN LBRACE . statement_list RBRACE
 
-    ASSIGN  shift, and go to state 129
+    INT          shift, and go to state 1
+    FLOAT_TYPE   shift, and go to state 2
+    STRING_TYPE  shift, and go to state 3
+    CHAR_TYPE    shift, and go to state 4
+    CONST        shift, and go to state 5
+    IF           shift, and go to state 6
+    WHILE        shift, and go to state 7
+    FOR          shift, and go to state 8
+    DO           shift, and go to state 9
+    SWITCH       shift, and go to state 10
+    RETURN       shift, and go to state 11
+    VOID_TYPE    shift, and go to state 12
+    MINUS        shift, and go to state 13
+    LPAREN       shift, and go to state 14
+    IDENTIFIER   shift, and go to state 15
+    NUMBER       shift, and go to state 16
+    FLOAT        shift, and go to state 17
+
+    statement_list    go to state 131
+    statement         go to state 20
+    declaration_stmt  go to state 21
+    type              go to state 22
+    assignment_stmt   go to state 23
+    expression        go to state 24
+    T                 go to state 25
+    F                 go to state 26
+    if_stmt           go to state 27
+    while_stmt        go to state 28
+    for_stmt          go to state 29
+    switch_stmt       go to state 30
+    function_decl     go to state 31
+    return_stmt       go to state 32
+    do_while_stmt     go to state 33
+    function_call     go to state 34
 
 
 state 119
 
-   47 for_stmt: FOR LPAREN declaration_stmt condition SEMICOLON assign . RPAREN LBRACE statement_list RBRACE
+   48 for_stmt: FOR LPAREN declaration_stmt condition SEMICOLON . assign RPAREN LBRACE statement_list RBRACE
 
-    RPAREN  shift, and go to state 130
+    IDENTIFIER  shift, and go to state 132
+
+    assign  go to state 133
 
 
 state 120
 
-   63 do_while_stmt: DO LBRACE statement_list RBRACE WHILE LPAREN . condition RPAREN SEMICOLON
+   65 do_while_stmt: DO LBRACE statement_list RBRACE WHILE . LPAREN condition RPAREN SEMICOLON
 
-    MINUS       shift, and go to state 12
-    NOT         shift, and go to state 55
-    LPAREN      shift, and go to state 13
-    IDENTIFIER  shift, and go to state 40
-    NUMBER      shift, and go to state 15
-    FLOAT       shift, and go to state 16
-
-    expression  go to state 56
-    T           go to state 24
-    F           go to state 25
-    condition   go to state 131
+    LPAREN  shift, and go to state 134
 
 
 state 121
 
-   52 case_stmt: CASE . expression COLON statement_list
-   53          | CASE . expression COLON statement_list BREAK SEMICOLON
+   49 switch_stmt: SWITCH LPAREN IDENTIFIER RPAREN LBRACE . case_list RBRACE
+   50            | SWITCH LPAREN IDENTIFIER RPAREN LBRACE . case_list default_case RBRACE
 
-    MINUS       shift, and go to state 12
-    LPAREN      shift, and go to state 13
-    IDENTIFIER  shift, and go to state 40
-    NUMBER      shift, and go to state 15
-    FLOAT       shift, and go to state 16
+    CASE  shift, and go to state 135
 
-    expression  go to state 132
-    T           go to state 24
-    F           go to state 25
+    case_list  go to state 136
+    case_stmt  go to state 137
 
 
 state 122
 
-   48 switch_stmt: SWITCH LPAREN IDENTIFIER RPAREN LBRACE case_list . RBRACE
-   49            | SWITCH LPAREN IDENTIFIER RPAREN LBRACE case_list . default_case RBRACE
-   51 case_list: case_list . case_stmt
+   62 parameter: type IDENTIFIER .
 
-    CASE     shift, and go to state 121
-    DEFAULT  shift, and go to state 133
-    RBRACE   shift, and go to state 134
-
-    case_stmt     go to state 135
-    default_case  go to state 136
+    $default  reduce using rule 62 (parameter)
 
 
 state 123
 
-   50 case_list: case_stmt .
+   59 function_decl: VOID_TYPE IDENTIFIER LPAREN parameter_list RPAREN . LBRACE statement_list RBRACE
 
-    $default  reduce using rule 50 (case_list)
+    LBRACE  shift, and go to state 138
 
 
 state 124
 
-    3 statement_list: statement_list . statement
-   57 function_decl: type IDENTIFIER LPAREN RPAREN LBRACE statement_list . RBRACE
+   61 parameter_list: parameter_list COMMA . parameter
 
     INT          shift, and go to state 1
     FLOAT_TYPE   shift, and go to state 2
     STRING_TYPE  shift, and go to state 3
     CHAR_TYPE    shift, and go to state 4
-    CONST        shift, and go to state 5
-    IF           shift, and go to state 6
-    WHILE        shift, and go to state 7
-    FOR          shift, and go to state 8
-    DO           shift, and go to state 9
-    SWITCH       shift, and go to state 10
-    RETURN       shift, and go to state 11
-    MINUS        shift, and go to state 12
-    LPAREN       shift, and go to state 13
-    RBRACE       shift, and go to state 137
-    IDENTIFIER   shift, and go to state 14
-    NUMBER       shift, and go to state 15
-    FLOAT        shift, and go to state 16
 
-    statement         go to state 46
-    declaration_stmt  go to state 20
-    type              go to state 21
-    assignment_stmt   go to state 22
-    expression        go to state 23
-    T                 go to state 24
-    F                 go to state 25
-    if_stmt           go to state 26
-    while_stmt        go to state 27
-    for_stmt          go to state 28
-    switch_stmt       go to state 29
-    function_decl     go to state 30
-    return_stmt       go to state 31
-    do_while_stmt     go to state 32
+    type       go to state 99
+    parameter  go to state 139
 
 
 state 125
 
-   56 function_decl: type IDENTIFIER LPAREN parameter_list RPAREN LBRACE . statement_list RBRACE
+   24 expression: expression . PLUS T
+   25           | expression . MINUS T
+   69 argument_list: argument_list COMMA expression .
 
-    INT          shift, and go to state 1
-    FLOAT_TYPE   shift, and go to state 2
-    STRING_TYPE  shift, and go to state 3
-    CHAR_TYPE    shift, and go to state 4
-    CONST        shift, and go to state 5
-    IF           shift, and go to state 6
-    WHILE        shift, and go to state 7
-    FOR          shift, and go to state 8
-    DO           shift, and go to state 9
-    SWITCH       shift, and go to state 10
-    RETURN       shift, and go to state 11
-    MINUS        shift, and go to state 12
-    LPAREN       shift, and go to state 13
-    IDENTIFIER   shift, and go to state 14
-    NUMBER       shift, and go to state 15
-    FLOAT        shift, and go to state 16
+    PLUS   shift, and go to state 52
+    MINUS  shift, and go to state 53
 
-    statement_list    go to state 138
-    statement         go to state 19
-    declaration_stmt  go to state 20
-    type              go to state 21
-    assignment_stmt   go to state 22
-    expression        go to state 23
-    T                 go to state 24
-    F                 go to state 25
-    if_stmt           go to state 26
-    while_stmt        go to state 27
-    for_stmt          go to state 28
-    switch_stmt       go to state 29
-    function_decl     go to state 30
-    return_stmt       go to state 31
-    do_while_stmt     go to state 32
+    $default  reduce using rule 69 (argument_list)
 
 
 state 126
 
-   59 parameter_list: parameter_list COMMA parameter .
+   17 declaration_stmt: type IDENTIFIER ASSIGN expression SEMICOLON .
 
-    $default  reduce using rule 59 (parameter_list)
+    $default  reduce using rule 17 (declaration_stmt)
 
 
 state 127
 
-   44 if_stmt: IF LPAREN condition RPAREN LBRACE statement_list RBRACE .
-   45        | IF LPAREN condition RPAREN LBRACE statement_list RBRACE . ELSE LBRACE statement_list RBRACE
+   58 function_decl: type IDENTIFIER LPAREN RPAREN LBRACE . statement_list RBRACE
 
-    ELSE  shift, and go to state 139
+    INT          shift, and go to state 1
+    FLOAT_TYPE   shift, and go to state 2
+    STRING_TYPE  shift, and go to state 3
+    CHAR_TYPE    shift, and go to state 4
+    CONST        shift, and go to state 5
+    IF           shift, and go to state 6
+    WHILE        shift, and go to state 7
+    FOR          shift, and go to state 8
+    DO           shift, and go to state 9
+    SWITCH       shift, and go to state 10
+    RETURN       shift, and go to state 11
+    VOID_TYPE    shift, and go to state 12
+    MINUS        shift, and go to state 13
+    LPAREN       shift, and go to state 14
+    IDENTIFIER   shift, and go to state 15
+    NUMBER       shift, and go to state 16
+    FLOAT        shift, and go to state 17
 
-    $default  reduce using rule 44 (if_stmt)
+    statement_list    go to state 140
+    statement         go to state 20
+    declaration_stmt  go to state 21
+    type              go to state 22
+    assignment_stmt   go to state 23
+    expression        go to state 24
+    T                 go to state 25
+    F                 go to state 26
+    if_stmt           go to state 27
+    while_stmt        go to state 28
+    for_stmt          go to state 29
+    switch_stmt       go to state 30
+    function_decl     go to state 31
+    return_stmt       go to state 32
+    do_while_stmt     go to state 33
+    function_call     go to state 34
 
 
 state 128
 
-   46 while_stmt: WHILE LPAREN condition RPAREN LBRACE statement_list RBRACE .
-
-    $default  reduce using rule 46 (while_stmt)
-
-
-state 129
-
-   22 assign: IDENTIFIER ASSIGN . expression
-
-    MINUS       shift, and go to state 12
-    LPAREN      shift, and go to state 13
-    IDENTIFIER  shift, and go to state 40
-    NUMBER      shift, and go to state 15
-    FLOAT       shift, and go to state 16
-
-    expression  go to state 140
-    T           go to state 24
-    F           go to state 25
-
-
-state 130
-
-   47 for_stmt: FOR LPAREN declaration_stmt condition SEMICOLON assign RPAREN . LBRACE statement_list RBRACE
+   57 function_decl: type IDENTIFIER LPAREN parameter_list RPAREN . LBRACE statement_list RBRACE
 
     LBRACE  shift, and go to state 141
 
 
+state 129
+
+   16 declaration_stmt: CONST type IDENTIFIER ASSIGN expression SEMICOLON .
+
+    $default  reduce using rule 16 (declaration_stmt)
+
+
+state 130
+
+    3 statement_list: statement_list . statement
+   45 if_stmt: IF LPAREN condition RPAREN LBRACE statement_list . RBRACE
+   46        | IF LPAREN condition RPAREN LBRACE statement_list . RBRACE ELSE LBRACE statement_list RBRACE
+
+    INT          shift, and go to state 1
+    FLOAT_TYPE   shift, and go to state 2
+    STRING_TYPE  shift, and go to state 3
+    CHAR_TYPE    shift, and go to state 4
+    CONST        shift, and go to state 5
+    IF           shift, and go to state 6
+    WHILE        shift, and go to state 7
+    FOR          shift, and go to state 8
+    DO           shift, and go to state 9
+    SWITCH       shift, and go to state 10
+    RETURN       shift, and go to state 11
+    VOID_TYPE    shift, and go to state 12
+    MINUS        shift, and go to state 13
+    LPAREN       shift, and go to state 14
+    RBRACE       shift, and go to state 142
+    IDENTIFIER   shift, and go to state 15
+    NUMBER       shift, and go to state 16
+    FLOAT        shift, and go to state 17
+
+    statement         go to state 50
+    declaration_stmt  go to state 21
+    type              go to state 22
+    assignment_stmt   go to state 23
+    expression        go to state 24
+    T                 go to state 25
+    F                 go to state 26
+    if_stmt           go to state 27
+    while_stmt        go to state 28
+    for_stmt          go to state 29
+    switch_stmt       go to state 30
+    function_decl     go to state 31
+    return_stmt       go to state 32
+    do_while_stmt     go to state 33
+    function_call     go to state 34
+
+
 state 131
 
-   63 do_while_stmt: DO LBRACE statement_list RBRACE WHILE LPAREN condition . RPAREN SEMICOLON
+    3 statement_list: statement_list . statement
+   47 while_stmt: WHILE LPAREN condition RPAREN LBRACE statement_list . RBRACE
 
-    RPAREN  shift, and go to state 142
+    INT          shift, and go to state 1
+    FLOAT_TYPE   shift, and go to state 2
+    STRING_TYPE  shift, and go to state 3
+    CHAR_TYPE    shift, and go to state 4
+    CONST        shift, and go to state 5
+    IF           shift, and go to state 6
+    WHILE        shift, and go to state 7
+    FOR          shift, and go to state 8
+    DO           shift, and go to state 9
+    SWITCH       shift, and go to state 10
+    RETURN       shift, and go to state 11
+    VOID_TYPE    shift, and go to state 12
+    MINUS        shift, and go to state 13
+    LPAREN       shift, and go to state 14
+    RBRACE       shift, and go to state 143
+    IDENTIFIER   shift, and go to state 15
+    NUMBER       shift, and go to state 16
+    FLOAT        shift, and go to state 17
+
+    statement         go to state 50
+    declaration_stmt  go to state 21
+    type              go to state 22
+    assignment_stmt   go to state 23
+    expression        go to state 24
+    T                 go to state 25
+    F                 go to state 26
+    if_stmt           go to state 27
+    while_stmt        go to state 28
+    for_stmt          go to state 29
+    switch_stmt       go to state 30
+    function_decl     go to state 31
+    return_stmt       go to state 32
+    do_while_stmt     go to state 33
+    function_call     go to state 34
 
 
 state 132
 
-   23 expression: expression . PLUS T
-   24           | expression . MINUS T
-   52 case_stmt: CASE expression . COLON statement_list
-   53          | CASE expression . COLON statement_list BREAK SEMICOLON
+   23 assign: IDENTIFIER . ASSIGN expression
 
-    PLUS   shift, and go to state 48
-    MINUS  shift, and go to state 49
-    COLON  shift, and go to state 143
+    ASSIGN  shift, and go to state 144
 
 
 state 133
 
-   54 default_case: DEFAULT . COLON statement_list
-   55             | DEFAULT . COLON statement_list BREAK SEMICOLON
+   48 for_stmt: FOR LPAREN declaration_stmt condition SEMICOLON assign . RPAREN LBRACE statement_list RBRACE
 
-    COLON  shift, and go to state 144
+    RPAREN  shift, and go to state 145
 
 
 state 134
 
-   48 switch_stmt: SWITCH LPAREN IDENTIFIER RPAREN LBRACE case_list RBRACE .
+   65 do_while_stmt: DO LBRACE statement_list RBRACE WHILE LPAREN . condition RPAREN SEMICOLON
 
-    $default  reduce using rule 48 (switch_stmt)
+    MINUS       shift, and go to state 13
+    NOT         shift, and go to state 60
+    LPAREN      shift, and go to state 14
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
+
+    expression  go to state 61
+    T           go to state 25
+    F           go to state 26
+    condition   go to state 146
 
 
 state 135
 
-   51 case_list: case_list case_stmt .
+   53 case_stmt: CASE . expression COLON statement_list
+   54          | CASE . expression COLON statement_list BREAK SEMICOLON
 
-    $default  reduce using rule 51 (case_list)
+    MINUS       shift, and go to state 13
+    LPAREN      shift, and go to state 14
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
+
+    expression  go to state 147
+    T           go to state 25
+    F           go to state 26
 
 
 state 136
 
-   49 switch_stmt: SWITCH LPAREN IDENTIFIER RPAREN LBRACE case_list default_case . RBRACE
+   49 switch_stmt: SWITCH LPAREN IDENTIFIER RPAREN LBRACE case_list . RBRACE
+   50            | SWITCH LPAREN IDENTIFIER RPAREN LBRACE case_list . default_case RBRACE
+   52 case_list: case_list . case_stmt
 
-    RBRACE  shift, and go to state 145
+    CASE     shift, and go to state 135
+    DEFAULT  shift, and go to state 148
+    RBRACE   shift, and go to state 149
+
+    case_stmt     go to state 150
+    default_case  go to state 151
 
 
 state 137
 
-   57 function_decl: type IDENTIFIER LPAREN RPAREN LBRACE statement_list RBRACE .
+   51 case_list: case_stmt .
 
-    $default  reduce using rule 57 (function_decl)
+    $default  reduce using rule 51 (case_list)
 
 
 state 138
 
-    3 statement_list: statement_list . statement
-   56 function_decl: type IDENTIFIER LPAREN parameter_list RPAREN LBRACE statement_list . RBRACE
+   59 function_decl: VOID_TYPE IDENTIFIER LPAREN parameter_list RPAREN LBRACE . statement_list RBRACE
 
     INT          shift, and go to state 1
     FLOAT_TYPE   shift, and go to state 2
@@ -1910,51 +1903,82 @@ state 138
     DO           shift, and go to state 9
     SWITCH       shift, and go to state 10
     RETURN       shift, and go to state 11
-    MINUS        shift, and go to state 12
-    LPAREN       shift, and go to state 13
-    RBRACE       shift, and go to state 146
-    IDENTIFIER   shift, and go to state 14
-    NUMBER       shift, and go to state 15
-    FLOAT        shift, and go to state 16
+    VOID_TYPE    shift, and go to state 12
+    MINUS        shift, and go to state 13
+    LPAREN       shift, and go to state 14
+    IDENTIFIER   shift, and go to state 15
+    NUMBER       shift, and go to state 16
+    FLOAT        shift, and go to state 17
 
-    statement         go to state 46
-    declaration_stmt  go to state 20
-    type              go to state 21
-    assignment_stmt   go to state 22
-    expression        go to state 23
-    T                 go to state 24
-    F                 go to state 25
-    if_stmt           go to state 26
-    while_stmt        go to state 27
-    for_stmt          go to state 28
-    switch_stmt       go to state 29
-    function_decl     go to state 30
-    return_stmt       go to state 31
-    do_while_stmt     go to state 32
+    statement_list    go to state 152
+    statement         go to state 20
+    declaration_stmt  go to state 21
+    type              go to state 22
+    assignment_stmt   go to state 23
+    expression        go to state 24
+    T                 go to state 25
+    F                 go to state 26
+    if_stmt           go to state 27
+    while_stmt        go to state 28
+    for_stmt          go to state 29
+    switch_stmt       go to state 30
+    function_decl     go to state 31
+    return_stmt       go to state 32
+    do_while_stmt     go to state 33
+    function_call     go to state 34
 
 
 state 139
 
-   45 if_stmt: IF LPAREN condition RPAREN LBRACE statement_list RBRACE ELSE . LBRACE statement_list RBRACE
+   61 parameter_list: parameter_list COMMA parameter .
 
-    LBRACE  shift, and go to state 147
+    $default  reduce using rule 61 (parameter_list)
 
 
 state 140
 
-   22 assign: IDENTIFIER ASSIGN expression .
-   23 expression: expression . PLUS T
-   24           | expression . MINUS T
+    3 statement_list: statement_list . statement
+   58 function_decl: type IDENTIFIER LPAREN RPAREN LBRACE statement_list . RBRACE
 
-    PLUS   shift, and go to state 48
-    MINUS  shift, and go to state 49
+    INT          shift, and go to state 1
+    FLOAT_TYPE   shift, and go to state 2
+    STRING_TYPE  shift, and go to state 3
+    CHAR_TYPE    shift, and go to state 4
+    CONST        shift, and go to state 5
+    IF           shift, and go to state 6
+    WHILE        shift, and go to state 7
+    FOR          shift, and go to state 8
+    DO           shift, and go to state 9
+    SWITCH       shift, and go to state 10
+    RETURN       shift, and go to state 11
+    VOID_TYPE    shift, and go to state 12
+    MINUS        shift, and go to state 13
+    LPAREN       shift, and go to state 14
+    RBRACE       shift, and go to state 153
+    IDENTIFIER   shift, and go to state 15
+    NUMBER       shift, and go to state 16
+    FLOAT        shift, and go to state 17
 
-    $default  reduce using rule 22 (assign)
+    statement         go to state 50
+    declaration_stmt  go to state 21
+    type              go to state 22
+    assignment_stmt   go to state 23
+    expression        go to state 24
+    T                 go to state 25
+    F                 go to state 26
+    if_stmt           go to state 27
+    while_stmt        go to state 28
+    for_stmt          go to state 29
+    switch_stmt       go to state 30
+    function_decl     go to state 31
+    return_stmt       go to state 32
+    do_while_stmt     go to state 33
+    function_call     go to state 34
 
 
 state 141
 
-   47 for_stmt: FOR LPAREN declaration_stmt condition SEMICOLON assign RPAREN LBRACE . statement_list RBRACE
+   57 function_decl: type IDENTIFIER LPAREN parameter_list RPAREN LBRACE . statement_list RBRACE
 
     INT          shift, and go to state 1
     FLOAT_TYPE   shift, and go to state 2
@@ -1967,300 +1991,122 @@ state 141
     DO           shift, and go to state 9
     SWITCH       shift, and go to state 10
     RETURN       shift, and go to state 11
-    MINUS        shift, and go to state 12
-    LPAREN       shift, and go to state 13
-    IDENTIFIER   shift, and go to state 14
-    NUMBER       shift, and go to state 15
-    FLOAT        shift, and go to state 16
+    VOID_TYPE    shift, and go to state 12
+    MINUS        shift, and go to state 13
+    LPAREN       shift, and go to state 14
+    IDENTIFIER   shift, and go to state 15
+    NUMBER       shift, and go to state 16
+    FLOAT        shift, and go to state 17
 
-    statement_list    go to state 148
-    statement         go to state 19
-    declaration_stmt  go to state 20
-    type              go to state 21
-    assignment_stmt   go to state 22
-    expression        go to state 23
-    T                 go to state 24
-    F                 go to state 25
-    if_stmt           go to state 26
-    while_stmt        go to state 27
-    for_stmt          go to state 28
-    switch_stmt       go to state 29
-    function_decl     go to state 30
-    return_stmt       go to state 31
-    do_while_stmt     go to state 32
+    statement_list    go to state 154
+    statement         go to state 20
+    declaration_stmt  go to state 21
+    type              go to state 22
+    assignment_stmt   go to state 23
+    expression        go to state 24
+    T                 go to state 25
+    F                 go to state 26
+    if_stmt           go to state 27
+    while_stmt        go to state 28
+    for_stmt          go to state 29
+    switch_stmt       go to state 30
+    function_decl     go to state 31
+    return_stmt       go to state 32
+    do_while_stmt     go to state 33
+    function_call     go to state 34
 
 
 state 142
 
-   63 do_while_stmt: DO LBRACE statement_list RBRACE WHILE LPAREN condition RPAREN . SEMICOLON
+   45 if_stmt: IF LPAREN condition RPAREN LBRACE statement_list RBRACE .
+   46        | IF LPAREN condition RPAREN LBRACE statement_list RBRACE . ELSE LBRACE statement_list RBRACE
 
-    SEMICOLON  shift, and go to state 149
+    ELSE  shift, and go to state 155
+
+    $default  reduce using rule 45 (if_stmt)
 
 
 state 143
 
-   52 case_stmt: CASE expression COLON . statement_list
-   53          | CASE expression COLON . statement_list BREAK SEMICOLON
+   47 while_stmt: WHILE LPAREN condition RPAREN LBRACE statement_list RBRACE .
 
-    INT          shift, and go to state 1
-    FLOAT_TYPE   shift, and go to state 2
-    STRING_TYPE  shift, and go to state 3
-    CHAR_TYPE    shift, and go to state 4
-    CONST        shift, and go to state 5
-    IF           shift, and go to state 6
-    WHILE        shift, and go to state 7
-    FOR          shift, and go to state 8
-    DO           shift, and go to state 9
-    SWITCH       shift, and go to state 10
-    RETURN       shift, and go to state 11
-    MINUS        shift, and go to state 12
-    LPAREN       shift, and go to state 13
-    IDENTIFIER   shift, and go to state 14
-    NUMBER       shift, and go to state 15
-    FLOAT        shift, and go to state 16
-
-    statement_list    go to state 150
-    statement         go to state 19
-    declaration_stmt  go to state 20
-    type              go to state 21
-    assignment_stmt   go to state 22
-    expression        go to state 23
-    T                 go to state 24
-    F                 go to state 25
-    if_stmt           go to state 26
-    while_stmt        go to state 27
-    for_stmt          go to state 28
-    switch_stmt       go to state 29
-    function_decl     go to state 30
-    return_stmt       go to state 31
-    do_while_stmt     go to state 32
+    $default  reduce using rule 47 (while_stmt)
 
 
 state 144
 
-   54 default_case: DEFAULT COLON . statement_list
-   55             | DEFAULT COLON . statement_list BREAK SEMICOLON
+   23 assign: IDENTIFIER ASSIGN . expression
 
-    INT          shift, and go to state 1
-    FLOAT_TYPE   shift, and go to state 2
-    STRING_TYPE  shift, and go to state 3
-    CHAR_TYPE    shift, and go to state 4
-    CONST        shift, and go to state 5
-    IF           shift, and go to state 6
-    WHILE        shift, and go to state 7
-    FOR          shift, and go to state 8
-    DO           shift, and go to state 9
-    SWITCH       shift, and go to state 10
-    RETURN       shift, and go to state 11
-    MINUS        shift, and go to state 12
-    LPAREN       shift, and go to state 13
-    IDENTIFIER   shift, and go to state 14
-    NUMBER       shift, and go to state 15
-    FLOAT        shift, and go to state 16
+    MINUS       shift, and go to state 13
+    LPAREN      shift, and go to state 14
+    IDENTIFIER  shift, and go to state 42
+    NUMBER      shift, and go to state 16
+    FLOAT       shift, and go to state 17
 
-    statement_list    go to state 151
-    statement         go to state 19
-    declaration_stmt  go to state 20
-    type              go to state 21
-    assignment_stmt   go to state 22
-    expression        go to state 23
-    T                 go to state 24
-    F                 go to state 25
-    if_stmt           go to state 26
-    while_stmt        go to state 27
-    for_stmt          go to state 28
-    switch_stmt       go to state 29
-    function_decl     go to state 30
-    return_stmt       go to state 31
-    do_while_stmt     go to state 32
+    expression  go to state 156
+    T           go to state 25
+    F           go to state 26
 
 
 state 145
 
-   49 switch_stmt: SWITCH LPAREN IDENTIFIER RPAREN LBRACE case_list default_case RBRACE .
+   48 for_stmt: FOR LPAREN declaration_stmt condition SEMICOLON assign RPAREN . LBRACE statement_list RBRACE
 
-    $default  reduce using rule 49 (switch_stmt)
+    LBRACE  shift, and go to state 157
 
 
 state 146
 
-   56 function_decl: type IDENTIFIER LPAREN parameter_list RPAREN LBRACE statement_list RBRACE .
+   65 do_while_stmt: DO LBRACE statement_list RBRACE WHILE LPAREN condition . RPAREN SEMICOLON
 
-    $default  reduce using rule 56 (function_decl)
+    RPAREN  shift, and go to state 158
 
 
 state 147
 
-   45 if_stmt: IF LPAREN condition RPAREN LBRACE statement_list RBRACE ELSE LBRACE . statement_list RBRACE
+   24 expression: expression . PLUS T
+   25           | expression . MINUS T
+   53 case_stmt: CASE expression . COLON statement_list
+   54          | CASE expression . COLON statement_list BREAK SEMICOLON
 
-    INT          shift, and go to state 1
-    FLOAT_TYPE   shift, and go to state 2
-    STRING_TYPE  shift, and go to state 3
-    CHAR_TYPE    shift, and go to state 4
-    CONST        shift, and go to state 5
-    IF           shift, and go to state 6
-    WHILE        shift, and go to state 7
-    FOR          shift, and go to state 8
-    DO           shift, and go to state 9
-    SWITCH       shift, and go to state 10
-    RETURN       shift, and go to state 11
-    MINUS        shift, and go to state 12
-    LPAREN       shift, and go to state 13
-    IDENTIFIER   shift, and go to state 14
-    NUMBER       shift, and go to state 15
-    FLOAT        shift, and go to state 16
-
-    statement_list    go to state 152
-    statement         go to state 19
-    declaration_stmt  go to state 20
-    type              go to state 21
-    assignment_stmt   go to state 22
-    expression        go to state 23
-    T                 go to state 24
-    F                 go to state 25
-    if_stmt           go to state 26
-    while_stmt        go to state 27
-    for_stmt          go to state 28
-    switch_stmt       go to state 29
-    function_decl     go to state 30
-    return_stmt       go to state 31
-    do_while_stmt     go to state 32
+    PLUS   shift, and go to state 52
+    MINUS  shift, and go to state 53
+    COLON  shift, and go to state 159
 
 
 state 148
 
-    3 statement_list: statement_list . statement
-   47 for_stmt: FOR LPAREN declaration_stmt condition SEMICOLON assign RPAREN LBRACE statement_list . RBRACE
+   55 default_case: DEFAULT . COLON statement_list
+   56             | DEFAULT . COLON statement_list BREAK SEMICOLON
 
-    INT          shift, and go to state 1
-    FLOAT_TYPE   shift, and go to state 2
-    STRING_TYPE  shift, and go to state 3
-    CHAR_TYPE    shift, and go to state 4
-    CONST        shift, and go to state 5
-    IF           shift, and go to state 6
-    WHILE        shift, and go to state 7
-    FOR          shift, and go to state 8
-    DO           shift, and go to state 9
-    SWITCH       shift, and go to state 10
-    RETURN       shift, and go to state 11
-    MINUS        shift, and go to state 12
-    LPAREN       shift, and go to state 13
-    RBRACE       shift, and go to state 153
-    IDENTIFIER   shift, and go to state 14
-    NUMBER       shift, and go to state 15
-    FLOAT        shift, and go to state 16
-
-    statement         go to state 46
-    declaration_stmt  go to state 20
-    type              go to state 21
-    assignment_stmt   go to state 22
-    expression        go to state 23
-    T                 go to state 24
-    F                 go to state 25
-    if_stmt           go to state 26
-    while_stmt        go to state 27
-    for_stmt          go to state 28
-    switch_stmt       go to state 29
-    function_decl     go to state 30
-    return_stmt       go to state 31
-    do_while_stmt     go to state 32
+    COLON  shift, and go to state 160
 
 
 state 149
 
-   63 do_while_stmt: DO LBRACE statement_list RBRACE WHILE LPAREN condition RPAREN SEMICOLON .
+   49 switch_stmt: SWITCH LPAREN IDENTIFIER RPAREN LBRACE case_list RBRACE .
 
-    $default  reduce using rule 63 (do_while_stmt)
+    $default  reduce using rule 49 (switch_stmt)
 
 
 state 150
 
-    3 statement_list: statement_list . statement
-   52 case_stmt: CASE expression COLON statement_list .
-   53          | CASE expression COLON statement_list . BREAK SEMICOLON
+   52 case_list: case_list case_stmt .
 
-    INT          shift, and go to state 1
-    FLOAT_TYPE   shift, and go to state 2
-    STRING_TYPE  shift, and go to state 3
-    CHAR_TYPE    shift, and go to state 4
-    CONST        shift, and go to state 5
-    IF           shift, and go to state 6
-    WHILE        shift, and go to state 7
-    FOR          shift, and go to state 8
-    DO           shift, and go to state 9
-    SWITCH       shift, and go to state 10
-    BREAK        shift, and go to state 154
-    RETURN       shift, and go to state 11
-    MINUS        shift, and go to state 12
-    LPAREN       shift, and go to state 13
-    IDENTIFIER   shift, and go to state 14
-    NUMBER       shift, and go to state 15
-    FLOAT        shift, and go to state 16
-
-    $default  reduce using rule 52 (case_stmt)
-
-    statement         go to state 46
-    declaration_stmt  go to state 20
-    type              go to state 21
-    assignment_stmt   go to state 22
-    expression        go to state 23
-    T                 go to state 24
-    F                 go to state 25
-    if_stmt           go to state 26
-    while_stmt        go to state 27
-    for_stmt          go to state 28
-    switch_stmt       go to state 29
-    function_decl     go to state 30
-    return_stmt       go to state 31
-    do_while_stmt     go to state 32
+    $default  reduce using rule 52 (case_list)
 
 
 state 151
 
-    3 statement_list: statement_list . statement
-   54 default_case: DEFAULT COLON statement_list .
-   55             | DEFAULT COLON statement_list . BREAK SEMICOLON
+   50 switch_stmt: SWITCH LPAREN IDENTIFIER RPAREN LBRACE case_list default_case . RBRACE
 
-    INT          shift, and go to state 1
-    FLOAT_TYPE   shift, and go to state 2
-    STRING_TYPE  shift, and go to state 3
-    CHAR_TYPE    shift, and go to state 4
-    CONST        shift, and go to state 5
-    IF           shift, and go to state 6
-    WHILE        shift, and go to state 7
-    FOR          shift, and go to state 8
-    DO           shift, and go to state 9
-    SWITCH       shift, and go to state 10
-    BREAK        shift, and go to state 155
-    RETURN       shift, and go to state 11
-    MINUS        shift, and go to state 12
-    LPAREN       shift, and go to state 13
-    IDENTIFIER   shift, and go to state 14
-    NUMBER       shift, and go to state 15
-    FLOAT        shift, and go to state 16
-
-    $default  reduce using rule 54 (default_case)
-
-    statement         go to state 46
-    declaration_stmt  go to state 20
-    type              go to state 21
-    assignment_stmt   go to state 22
-    expression        go to state 23
-    T                 go to state 24
-    F                 go to state 25
-    if_stmt           go to state 26
-    while_stmt        go to state 27
-    for_stmt          go to state 28
-    switch_stmt       go to state 29
-    function_decl     go to state 30
-    return_stmt       go to state 31
-    do_while_stmt     go to state 32
+    RBRACE  shift, and go to state 161
 
 
 state 152
 
     3 statement_list: statement_list . statement
-   45 if_stmt: IF LPAREN condition RPAREN LBRACE statement_list RBRACE ELSE LBRACE statement_list . RBRACE
+   59 function_decl: VOID_TYPE IDENTIFIER LPAREN parameter_list RPAREN LBRACE statement_list . RBRACE
 
     INT          shift, and go to state 1
     FLOAT_TYPE   shift, and go to state 2
@@ -2273,66 +2119,502 @@ state 152
     DO           shift, and go to state 9
     SWITCH       shift, and go to state 10
     RETURN       shift, and go to state 11
-    MINUS        shift, and go to state 12
-    LPAREN       shift, and go to state 13
-    RBRACE       shift, and go to state 156
-    IDENTIFIER   shift, and go to state 14
-    NUMBER       shift, and go to state 15
-    FLOAT        shift, and go to state 16
+    VOID_TYPE    shift, and go to state 12
+    MINUS        shift, and go to state 13
+    LPAREN       shift, and go to state 14
+    RBRACE       shift, and go to state 162
+    IDENTIFIER   shift, and go to state 15
+    NUMBER       shift, and go to state 16
+    FLOAT        shift, and go to state 17
 
-    statement         go to state 46
-    declaration_stmt  go to state 20
-    type              go to state 21
-    assignment_stmt   go to state 22
-    expression        go to state 23
-    T                 go to state 24
-    F                 go to state 25
-    if_stmt           go to state 26
-    while_stmt        go to state 27
-    for_stmt          go to state 28
-    switch_stmt       go to state 29
-    function_decl     go to state 30
-    return_stmt       go to state 31
-    do_while_stmt     go to state 32
+    statement         go to state 50
+    declaration_stmt  go to state 21
+    type              go to state 22
+    assignment_stmt   go to state 23
+    expression        go to state 24
+    T                 go to state 25
+    F                 go to state 26
+    if_stmt           go to state 27
+    while_stmt        go to state 28
+    for_stmt          go to state 29
+    switch_stmt       go to state 30
+    function_decl     go to state 31
+    return_stmt       go to state 32
+    do_while_stmt     go to state 33
+    function_call     go to state 34
 
 
 state 153
 
-   47 for_stmt: FOR LPAREN declaration_stmt condition SEMICOLON assign RPAREN LBRACE statement_list RBRACE .
+   58 function_decl: type IDENTIFIER LPAREN RPAREN LBRACE statement_list RBRACE .
 
-    $default  reduce using rule 47 (for_stmt)
+    $default  reduce using rule 58 (function_decl)
 
 
 state 154
 
-   53 case_stmt: CASE expression COLON statement_list BREAK . SEMICOLON
+    3 statement_list: statement_list . statement
+   57 function_decl: type IDENTIFIER LPAREN parameter_list RPAREN LBRACE statement_list . RBRACE
 
-    SEMICOLON  shift, and go to state 157
+    INT          shift, and go to state 1
+    FLOAT_TYPE   shift, and go to state 2
+    STRING_TYPE  shift, and go to state 3
+    CHAR_TYPE    shift, and go to state 4
+    CONST        shift, and go to state 5
+    IF           shift, and go to state 6
+    WHILE        shift, and go to state 7
+    FOR          shift, and go to state 8
+    DO           shift, and go to state 9
+    SWITCH       shift, and go to state 10
+    RETURN       shift, and go to state 11
+    VOID_TYPE    shift, and go to state 12
+    MINUS        shift, and go to state 13
+    LPAREN       shift, and go to state 14
+    RBRACE       shift, and go to state 163
+    IDENTIFIER   shift, and go to state 15
+    NUMBER       shift, and go to state 16
+    FLOAT        shift, and go to state 17
+
+    statement         go to state 50
+    declaration_stmt  go to state 21
+    type              go to state 22
+    assignment_stmt   go to state 23
+    expression        go to state 24
+    T                 go to state 25
+    F                 go to state 26
+    if_stmt           go to state 27
+    while_stmt        go to state 28
+    for_stmt          go to state 29
+    switch_stmt       go to state 30
+    function_decl     go to state 31
+    return_stmt       go to state 32
+    do_while_stmt     go to state 33
+    function_call     go to state 34
 
 
 state 155
 
-   55 default_case: DEFAULT COLON statement_list BREAK . SEMICOLON
+   46 if_stmt: IF LPAREN condition RPAREN LBRACE statement_list RBRACE ELSE . LBRACE statement_list RBRACE
 
-    SEMICOLON  shift, and go to state 158
+    LBRACE  shift, and go to state 164
 
 
 state 156
 
-   45 if_stmt: IF LPAREN condition RPAREN LBRACE statement_list RBRACE ELSE LBRACE statement_list RBRACE .
+   23 assign: IDENTIFIER ASSIGN expression .
+   24 expression: expression . PLUS T
+   25           | expression . MINUS T
 
-    $default  reduce using rule 45 (if_stmt)
+    PLUS   shift, and go to state 52
+    MINUS  shift, and go to state 53
+
+    $default  reduce using rule 23 (assign)
 
 
 state 157
 
-   53 case_stmt: CASE expression COLON statement_list BREAK SEMICOLON .
+   48 for_stmt: FOR LPAREN declaration_stmt condition SEMICOLON assign RPAREN LBRACE . statement_list RBRACE
 
-    $default  reduce using rule 53 (case_stmt)
+    INT          shift, and go to state 1
+    FLOAT_TYPE   shift, and go to state 2
+    STRING_TYPE  shift, and go to state 3
+    CHAR_TYPE    shift, and go to state 4
+    CONST        shift, and go to state 5
+    IF           shift, and go to state 6
+    WHILE        shift, and go to state 7
+    FOR          shift, and go to state 8
+    DO           shift, and go to state 9
+    SWITCH       shift, and go to state 10
+    RETURN       shift, and go to state 11
+    VOID_TYPE    shift, and go to state 12
+    MINUS        shift, and go to state 13
+    LPAREN       shift, and go to state 14
+    IDENTIFIER   shift, and go to state 15
+    NUMBER       shift, and go to state 16
+    FLOAT        shift, and go to state 17
+
+    statement_list    go to state 165
+    statement         go to state 20
+    declaration_stmt  go to state 21
+    type              go to state 22
+    assignment_stmt   go to state 23
+    expression        go to state 24
+    T                 go to state 25
+    F                 go to state 26
+    if_stmt           go to state 27
+    while_stmt        go to state 28
+    for_stmt          go to state 29
+    switch_stmt       go to state 30
+    function_decl     go to state 31
+    return_stmt       go to state 32
+    do_while_stmt     go to state 33
+    function_call     go to state 34
 
 
 state 158
 
-   55 default_case: DEFAULT COLON statement_list BREAK SEMICOLON .
+   65 do_while_stmt: DO LBRACE statement_list RBRACE WHILE LPAREN condition RPAREN . SEMICOLON
+
+    SEMICOLON  shift, and go to state 166
+
+
+state 159
+
+   53 case_stmt: CASE expression COLON . statement_list
+   54          | CASE expression COLON . statement_list BREAK SEMICOLON
+
+    INT          shift, and go to state 1
+    FLOAT_TYPE   shift, and go to state 2
+    STRING_TYPE  shift, and go to state 3
+    CHAR_TYPE    shift, and go to state 4
+    CONST        shift, and go to state 5
+    IF           shift, and go to state 6
+    WHILE        shift, and go to state 7
+    FOR          shift, and go to state 8
+    DO           shift, and go to state 9
+    SWITCH       shift, and go to state 10
+    RETURN       shift, and go to state 11
+    VOID_TYPE    shift, and go to state 12
+    MINUS        shift, and go to state 13
+    LPAREN       shift, and go to state 14
+    IDENTIFIER   shift, and go to state 15
+    NUMBER       shift, and go to state 16
+    FLOAT        shift, and go to state 17
+
+    statement_list    go to state 167
+    statement         go to state 20
+    declaration_stmt  go to state 21
+    type              go to state 22
+    assignment_stmt   go to state 23
+    expression        go to state 24
+    T                 go to state 25
+    F                 go to state 26
+    if_stmt           go to state 27
+    while_stmt        go to state 28
+    for_stmt          go to state 29
+    switch_stmt       go to state 30
+    function_decl     go to state 31
+    return_stmt       go to state 32
+    do_while_stmt     go to state 33
+    function_call     go to state 34
+
+
+state 160
+
+   55 default_case: DEFAULT COLON . statement_list
+   56             | DEFAULT COLON . statement_list BREAK SEMICOLON
+
+    INT          shift, and go to state 1
+    FLOAT_TYPE   shift, and go to state 2
+    STRING_TYPE  shift, and go to state 3
+    CHAR_TYPE    shift, and go to state 4
+    CONST        shift, and go to state 5
+    IF           shift, and go to state 6
+    WHILE        shift, and go to state 7
+    FOR          shift, and go to state 8
+    DO           shift, and go to state 9
+    SWITCH       shift, and go to state 10
+    RETURN       shift, and go to state 11
+    VOID_TYPE    shift, and go to state 12
+    MINUS        shift, and go to state 13
+    LPAREN       shift, and go to state 14
+    IDENTIFIER   shift, and go to state 15
+    NUMBER       shift, and go to state 16
+    FLOAT        shift, and go to state 17
+
+    statement_list    go to state 168
+    statement         go to state 20
+    declaration_stmt  go to state 21
+    type              go to state 22
+    assignment_stmt   go to state 23
+    expression        go to state 24
+    T                 go to state 25
+    F                 go to state 26
+    if_stmt           go to state 27
+    while_stmt        go to state 28
+    for_stmt          go to state 29
+    switch_stmt       go to state 30
+    function_decl     go to state 31
+    return_stmt       go to state 32
+    do_while_stmt     go to state 33
+    function_call     go to state 34
+
+
+state 161
+
+   50 switch_stmt: SWITCH LPAREN IDENTIFIER RPAREN LBRACE case_list default_case RBRACE .
+
+    $default  reduce using rule 50 (switch_stmt)
+
+
+state 162
+
+   59 function_decl: VOID_TYPE IDENTIFIER LPAREN parameter_list RPAREN LBRACE statement_list RBRACE .
+
+    $default  reduce using rule 59 (function_decl)
+
+
+state 163
+
+   57 function_decl: type IDENTIFIER LPAREN parameter_list RPAREN LBRACE statement_list RBRACE .
+
+    $default  reduce using rule 57 (function_decl)
+
+
+state 164
+
+   46 if_stmt: IF LPAREN condition RPAREN LBRACE statement_list RBRACE ELSE LBRACE . statement_list RBRACE
+
+    INT          shift, and go to state 1
+    FLOAT_TYPE   shift, and go to state 2
+    STRING_TYPE  shift, and go to state 3
+    CHAR_TYPE    shift, and go to state 4
+    CONST        shift, and go to state 5
+    IF           shift, and go to state 6
+    WHILE        shift, and go to state 7
+    FOR          shift, and go to state 8
+    DO           shift, and go to state 9
+    SWITCH       shift, and go to state 10
+    RETURN       shift, and go to state 11
+    VOID_TYPE    shift, and go to state 12
+    MINUS        shift, and go to state 13
+    LPAREN       shift, and go to state 14
+    IDENTIFIER   shift, and go to state 15
+    NUMBER       shift, and go to state 16
+    FLOAT        shift, and go to state 17
+
+    statement_list    go to state 169
+    statement         go to state 20
+    declaration_stmt  go to state 21
+    type              go to state 22
+    assignment_stmt   go to state 23
+    expression        go to state 24
+    T                 go to state 25
+    F                 go to state 26
+    if_stmt           go to state 27
+    while_stmt        go to state 28
+    for_stmt          go to state 29
+    switch_stmt       go to state 30
+    function_decl     go to state 31
+    return_stmt       go to state 32
+    do_while_stmt     go to state 33
+    function_call     go to state 34
+
+
+state 165
+
+    3 statement_list: statement_list . statement
+   48 for_stmt: FOR LPAREN declaration_stmt condition SEMICOLON assign RPAREN LBRACE statement_list . RBRACE
+
+    INT          shift, and go to state 1
+    FLOAT_TYPE   shift, and go to state 2
+    STRING_TYPE  shift, and go to state 3
+    CHAR_TYPE    shift, and go to state 4
+    CONST        shift, and go to state 5
+    IF           shift, and go to state 6
+    WHILE        shift, and go to state 7
+    FOR          shift, and go to state 8
+    DO           shift, and go to state 9
+    SWITCH       shift, and go to state 10
+    RETURN       shift, and go to state 11
+    VOID_TYPE    shift, and go to state 12
+    MINUS        shift, and go to state 13
+    LPAREN       shift, and go to state 14
+    RBRACE       shift, and go to state 170
+    IDENTIFIER   shift, and go to state 15
+    NUMBER       shift, and go to state 16
+    FLOAT        shift, and go to state 17
+
+    statement         go to state 50
+    declaration_stmt  go to state 21
+    type              go to state 22
+    assignment_stmt   go to state 23
+    expression        go to state 24
+    T                 go to state 25
+    F                 go to state 26
+    if_stmt           go to state 27
+    while_stmt        go to state 28
+    for_stmt          go to state 29
+    switch_stmt       go to state 30
+    function_decl     go to state 31
+    return_stmt       go to state 32
+    do_while_stmt     go to state 33
+    function_call     go to state 34
+
+
+state 166
+
+   65 do_while_stmt: DO LBRACE statement_list RBRACE WHILE LPAREN condition RPAREN SEMICOLON .
+
+    $default  reduce using rule 65 (do_while_stmt)
+
+
+state 167
+
+    3 statement_list: statement_list . statement
+   53 case_stmt: CASE expression COLON statement_list .
+   54          | CASE expression COLON statement_list . BREAK SEMICOLON
+
+    INT          shift, and go to state 1
+    FLOAT_TYPE   shift, and go to state 2
+    STRING_TYPE  shift, and go to state 3
+    CHAR_TYPE    shift, and go to state 4
+    CONST        shift, and go to state 5
+    IF           shift, and go to state 6
+    WHILE        shift, and go to state 7
+    FOR          shift, and go to state 8
+    DO           shift, and go to state 9
+    SWITCH       shift, and go to state 10
+    BREAK        shift, and go to state 171
+    RETURN       shift, and go to state 11
+    VOID_TYPE    shift, and go to state 12
+    MINUS        shift, and go to state 13
+    LPAREN       shift, and go to state 14
+    IDENTIFIER   shift, and go to state 15
+    NUMBER       shift, and go to state 16
+    FLOAT        shift, and go to state 17
+
+    $default  reduce using rule 53 (case_stmt)
+
+    statement         go to state 50
+    declaration_stmt  go to state 21
+    type              go to state 22
+    assignment_stmt   go to state 23
+    expression        go to state 24
+    T                 go to state 25
+    F                 go to state 26
+    if_stmt           go to state 27
+    while_stmt        go to state 28
+    for_stmt          go to state 29
+    switch_stmt       go to state 30
+    function_decl     go to state 31
+    return_stmt       go to state 32
+    do_while_stmt     go to state 33
+    function_call     go to state 34
+
+
+state 168
+
+    3 statement_list: statement_list . statement
+   55 default_case: DEFAULT COLON statement_list .
+   56             | DEFAULT COLON statement_list . BREAK SEMICOLON
+
+    INT          shift, and go to state 1
+    FLOAT_TYPE   shift, and go to state 2
+    STRING_TYPE  shift, and go to state 3
+    CHAR_TYPE    shift, and go to state 4
+    CONST        shift, and go to state 5
+    IF           shift, and go to state 6
+    WHILE        shift, and go to state 7
+    FOR          shift, and go to state 8
+    DO           shift, and go to state 9
+    SWITCH       shift, and go to state 10
+    BREAK        shift, and go to state 172
+    RETURN       shift, and go to state 11
+    VOID_TYPE    shift, and go to state 12
+    MINUS        shift, and go to state 13
+    LPAREN       shift, and go to state 14
+    IDENTIFIER   shift, and go to state 15
+    NUMBER       shift, and go to state 16
+    FLOAT        shift, and go to state 17
 
     $default  reduce using rule 55 (default_case)
+
+    statement         go to state 50
+    declaration_stmt  go to state 21
+    type              go to state 22
+    assignment_stmt   go to state 23
+    expression        go to state 24
+    T                 go to state 25
+    F                 go to state 26
+    if_stmt           go to state 27
+    while_stmt        go to state 28
+    for_stmt          go to state 29
+    switch_stmt       go to state 30
+    function_decl     go to state 31
+    return_stmt       go to state 32
+    do_while_stmt     go to state 33
+    function_call     go to state 34
+
+
+state 169
+
+    3 statement_list: statement_list . statement
+   46 if_stmt: IF LPAREN condition RPAREN LBRACE statement_list RBRACE ELSE LBRACE statement_list . RBRACE
+
+    INT          shift, and go to state 1
+    FLOAT_TYPE   shift, and go to state 2
+    STRING_TYPE  shift, and go to state 3
+    CHAR_TYPE    shift, and go to state 4
+    CONST        shift, and go to state 5
+    IF           shift, and go to state 6
+    WHILE        shift, and go to state 7
+    FOR          shift, and go to state 8
+    DO           shift, and go to state 9
+    SWITCH       shift, and go to state 10
+    RETURN       shift, and go to state 11
+    VOID_TYPE    shift, and go to state 12
+    MINUS        shift, and go to state 13
+    LPAREN       shift, and go to state 14
+    RBRACE       shift, and go to state 173
+    IDENTIFIER   shift, and go to state 15
+    NUMBER       shift, and go to state 16
+    FLOAT        shift, and go to state 17
+
+    statement         go to state 50
+    declaration_stmt  go to state 21
+    type              go to state 22
+    assignment_stmt   go to state 23
+    expression        go to state 24
+    T                 go to state 25
+    F                 go to state 26
+    if_stmt           go to state 27
+    while_stmt        go to state 28
+    for_stmt          go to state 29
+    switch_stmt       go to state 30
+    function_decl     go to state 31
+    return_stmt       go to state 32
+    do_while_stmt     go to state 33
+    function_call     go to state 34
+
+
+state 170
+
+   48 for_stmt: FOR LPAREN declaration_stmt condition SEMICOLON assign RPAREN LBRACE statement_list RBRACE .
+
+    $default  reduce using rule 48 (for_stmt)
+
+
+state 171
+
+   54 case_stmt: CASE expression COLON statement_list BREAK . SEMICOLON
+
+    SEMICOLON  shift, and go to state 174
+
+
+state 172
+
+   56 default_case: DEFAULT COLON statement_list BREAK . SEMICOLON
+
+    SEMICOLON  shift, and go to state 175
+
+
+state 173
+
+   46 if_stmt: IF LPAREN condition RPAREN LBRACE statement_list RBRACE ELSE LBRACE statement_list RBRACE .
+
+    $default  reduce using rule 46 (if_stmt)
+
+
+state 174
+
+   54 case_stmt: CASE expression COLON statement_list BREAK SEMICOLON .
+
+    $default  reduce using rule 54 (case_stmt)
+
+
+state 175
+
+   56 default_case: DEFAULT COLON statement_list BREAK SEMICOLON .
+
+    $default  reduce using rule 56 (default_case)

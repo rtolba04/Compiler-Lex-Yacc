@@ -1,0 +1,62 @@
+int i=0;
+if(i==4){
+ int x=4;
+}
+else{
+    int x=3;
+}
+int sum;
+
+for (int i=0; i<4 ;i =i+1)
+{
+    sum= sum +i;
+}
+
+int CalculateSum(int x, int y){
+    sum= x+y;
+    return sum;
+}
+
+int TryNoParameters(){
+    sum=y+7;
+    return sum;
+}
+
+CalculateSum(x,y+z);
+TryNoParameters();
+
+void FunctionNothing(int x){
+    int x;
+}
+
+int x;
+x=4;
+x=7+y;
+x=5;
+
+
+while (x>5){
+    
+    x=x+1;
+    y=y+x;
+}
+
+do {
+ z=z+7;
+ if(x>6){
+    int x=0;
+ }
+}while (x!=5);
+
+switch(colour)
+{
+ case red:
+  int x=1;
+  break;
+case blue:
+ int x=2;
+default:
+int x=7;
+break;
+
+}
