@@ -15,7 +15,7 @@ int yylex(void);
 }
 
 %token INT FLOAT_TYPE STRING_TYPE CHAR_TYPE CONST
-%token IF ELSE WHILE FOR REPEAT UNTIL SWITCH CASE DEFAULT BREAK
+%token IF ELSE WHILE FOR DO SWITCH CASE DEFAULT BREAK
 %token RETURN
 
 %token PLUS MINUS MULTIPLY DIVIDE MODULO
@@ -55,6 +55,7 @@ statement:
     | for_stmt
     | switch_stmt
     | function_decl
+    | do_while_stmt
     | return_stmt
     ;
 
@@ -115,16 +116,16 @@ condition:
     ;
 
 if_stmt:
-    IF LPAREN condition RPAREN LBRACE statement RBRACE                                { printf("IF statement executed\n"); }
-    | IF LPAREN condition RPAREN LBRACE statement RBRACE ELSE LBRACE statement RBRACE   {printf("IF-ELSE statement executed\n");  }
+    IF LPAREN condition RPAREN LBRACE statement_list RBRACE                                { printf("IF statement executed\n"); }
+    | IF LPAREN condition RPAREN LBRACE statement_list RBRACE ELSE LBRACE statement_list RBRACE   {printf("IF-ELSE statement executed\n");  }
     ;
 
 while_stmt:
-    WHILE LPAREN condition RPAREN LBRACE statement RBRACE                             {printf("WHILE loop executed\n");}
+    WHILE LPAREN condition RPAREN LBRACE statement_list RBRACE                             {printf("WHILE loop executed\n");}
     ;
 
 for_stmt:
-    FOR LPAREN declaration_stmt condition SEMICOLON assign RPAREN LBRACE statement RBRACE    { printf("FOR loop with declaration executed\n");    }
+    FOR LPAREN declaration_stmt condition SEMICOLON assign RPAREN LBRACE statement_list RBRACE    { printf("FOR loop with declaration executed\n");    }
     ;
 
 
@@ -141,23 +142,23 @@ case_list:
     ;
 
 case_stmt:
-    CASE expression COLON statement
+    CASE expression COLON statement_list
     {      printf("CASE executed\n");    }
-    | CASE expression COLON statement BREAK SEMICOLON
+    | CASE expression COLON statement_list BREAK SEMICOLON
     {      printf("CASE with BREAK executed\n");    }
     ;
 
 default_case:
-    DEFAULT COLON statement
+    DEFAULT COLON statement_list
     {        printf("DEFAULT case executed\n");   }
-    | DEFAULT COLON statement BREAK SEMICOLON
+    | DEFAULT COLON statement_list BREAK SEMICOLON
     {     printf("DEFAULT case with BREAK executed\n");   }
     ;
 
 function_decl:
-    type IDENTIFIER LPAREN parameter_list RPAREN LBRACE statement RBRACE
+    type IDENTIFIER LPAREN parameter_list RPAREN LBRACE statement_list RBRACE
     {       printf("Function declaration executed\n");   }
-    | type IDENTIFIER LPAREN RPAREN LBRACE statement RBRACE
+    | type IDENTIFIER LPAREN RPAREN LBRACE statement_list RBRACE
     {       printf("Function declaration (no parameters) executed\n");    }
     ;
 
@@ -181,7 +182,10 @@ return_stmt:
     }
     ;
 
-
+do_while_stmt:
+    DO LBRACE statement_list RBRACE WHILE LPAREN condition RPAREN SEMICOLON
+    { printf("DO-WHILE loop executed\n"); }
+    ;
 
 %%
 

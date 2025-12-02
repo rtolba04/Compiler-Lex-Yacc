@@ -30,14 +30,12 @@ NEWLINE     \n
 "else"          { return ELSE; }
 "while"         { return WHILE; }
 "for"           { return FOR; }
-"repeat"        { return REPEAT; }
-"until"         { return UNTIL; }
 "switch"        { return SWITCH; }
 "case"          { return CASE; }
 "default"       { return DEFAULT; }
 "break"         { return BREAK; }
 "return"        { return RETURN; }
-
+"do"            { return DO; }
 
 "+"             { return PLUS; }
 "-"             { return MINUS; }
