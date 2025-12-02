@@ -50,7 +50,7 @@ statement_list:
 statement:
     declaration_stmt
     | assignment_stmt
-    | expression SEMICOLON          { printf("Result: %d\n", $1); }
+    | expression SEMICOLON         
     | if_stmt
     | while_stmt
     | for_stmt
@@ -58,7 +58,6 @@ statement:
     | function_decl
     | do_while_stmt
     | return_stmt
-    | function_call SEMICOLON
     ;
 
 declaration_stmt:
@@ -106,6 +105,10 @@ F:
     LPAREN expression RPAREN        { $$ = $2; }
     | MINUS F                       { $$ = -$2; }
     | IDENTIFIER                    { /* Need symbol table lookup */ }
+    | IDENTIFIER LPAREN argument_list RPAREN
+    {      printf("Function call: %s() executed\n", $1);      $$ = 0;    }
+    | IDENTIFIER LPAREN RPAREN
+    {      printf("Function call: %s() with no arguments executed\n", $1);  $$ = 0;     }
     | FLOAT                         { $$ = $1; }
     | NUMBER                        { $$ = $1; }
     ;
@@ -196,12 +199,7 @@ do_while_stmt:
     { printf("DO-WHILE loop executed\n"); }
     ;
 
-function_call:
-    IDENTIFIER LPAREN argument_list RPAREN 
-    { printf("Function call: %s() executed\n", $1); }
-    | IDENTIFIER LPAREN RPAREN 
-    { printf("Function call: %s() with no arguments executed\n", $1); }
-    ;
+
 
 argument_list:
     expression

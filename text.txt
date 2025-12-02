@@ -22,12 +22,15 @@ int TryNoParameters(){
     return sum;
 }
 
-CalculateSum(x,y+z);
+
 TryNoParameters();
 
 void FunctionNothing(int x){
     int x;
 }
+int x=CalculateSum(x,y+z);
+
+FunctionNothing();
 
 int x;
 x=4;
@@ -60,3 +63,5 @@ int x=7;
 break;
 
 }
+
+X+y;
