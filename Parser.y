@@ -160,10 +160,28 @@ F:
             $$ = 0; // or entry->type if you want type checking later
         }
     }
-    | IDENTIFIER LPAREN argument_list RPAREN
-    {      printf("Function call: %s() executed\n", $1);      $$ = 0;    }
+    | IDENTIFIER LPAREN argument_list RPAREN 
+    {
+        SymbolEntry *entry = lookup_symbol($1);
+        if (!entry || entry->kind != FUNCTION) {
+            yyerror("Call to undeclared function");
+        } else {
+            update_symbol_used($1);
+        }
+        printf("Function call: %s() executed\n", $1);
+        $$ = 0;
+    }
     | IDENTIFIER LPAREN RPAREN
-    {      printf("Function call: %s() with no arguments executed\n", $1);  $$ = 0;     }
+    {    
+         SymbolEntry *entry = lookup_symbol($1);
+        if (!entry || entry->kind != FUNCTION) {
+            yyerror("Call to undeclared function");
+        } else {
+            update_symbol_used($1);
+        }
+        $$ = 0;  
+        printf("Function call: %s() with no arguments executed\n", $1);  $$ = 0;    
+    }
     | FLOAT                         { $$ = $1; }
     | NUMBER                        { $$ = $1; }
     | TRUE_COND                     { $$ = 1; }
@@ -180,7 +198,7 @@ condition:
     | expression AND expression { $$ = ($1 && $3); }
     | expression OR expression { $$ = ($1 || $3); }
     | NOT expression { $$ = !$2; }
-    | expression { /* Need symbol table lookup for boolean variable */ }
+    | expression { $$ = $1; }
     ;
 
 if_stmt:
@@ -207,9 +225,25 @@ for_stmt:
 
 switch_stmt:
     SWITCH LPAREN IDENTIFIER RPAREN scope_start case_list scope_end
-    {    printf("SWITCH statement executed\n");  }
+    {
+        SymbolEntry *entry = lookup_symbol($3);
+        if (!entry) {
+            yyerror("Undeclared variable in SWITCH statement");
+        } else {
+            update_symbol_used($3);
+            printf("SWITCH statement executed on variable '%s'\n", $3);
+        }
+    }
     | SWITCH LPAREN IDENTIFIER RPAREN scope_start case_list default_case scope_end
-    {   printf("SWITCH statement with DEFAULT executed\n");   }
+    {
+        SymbolEntry *entry = lookup_symbol($3);
+        if (!entry) {
+            yyerror("Undeclared variable in SWITCH statement");
+        } else {
+            update_symbol_used($3);
+            printf("SWITCH statement with DEFAULT executed on variable '%s'\n", $3);
+        }
+    }
     ;
 
 scope_start: LBRACE { enter_scope(); };
