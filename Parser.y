@@ -149,7 +149,17 @@ T:
 F:
     LPAREN condition RPAREN        { $$ = $2; }
     | MINUS F                       { $$ = -$2; }
-    | IDENTIFIER                    { /* Need symbol table lookup */ }
+    | IDENTIFIER                   
+    {
+        SymbolEntry *entry = lookup_symbol($1);
+        if (!entry) {
+            yyerror("Undeclared variable used in expression");
+            $$ = 0; 
+        } else {
+            update_symbol_used($1);
+            $$ = 0; // or entry->type if you want type checking later
+        }
+    }
     | IDENTIFIER LPAREN argument_list RPAREN
     {      printf("Function call: %s() executed\n", $1);      $$ = 0;    }
     | IDENTIFIER LPAREN RPAREN
@@ -226,21 +236,25 @@ default_case:
     ;
 
 function_decl:
-    type IDENTIFIER LPAREN parameter_list RPAREN 
-    LBRACE { enter_scope(); }
-    statement_list 
-    RBRACE { exit_scope(); }
-    {       printf("Function declaration executed\n");   }
-    | type IDENTIFIER LPAREN RPAREN 
-    LBRACE  { enter_scope(); }
-    statement_list 
-    RBRACE  { exit_scope(); }
-    {       printf("Function declaration (no parameters) executed\n");    }
-    | VOID_TYPE IDENTIFIER LPAREN parameter_list RPAREN 
-    LBRACE  { enter_scope(); }
-    statement_list 
-    RBRACE  { exit_scope(); }
-    {       printf("Void function declaration executed\n");   }
+    type IDENTIFIER LPAREN parameter_list RPAREN scope_start statement_list scope_end {
+        insert_symbol($2, $1, FUNCTION, 0);
+        printf("Function declaration executed\n");
+    }
+    | type IDENTIFIER LPAREN RPAREN scope_start statement_list scope_end
+    {       
+        insert_symbol($2, $1, FUNCTION, 0);
+        printf("Function declaration (no parameters) executed\n");    
+    }
+    | VOID_TYPE IDENTIFIER LPAREN parameter_list RPAREN scope_start statement_list scope_end
+    {      
+        insert_symbol($2, TYPE_VOID, FUNCTION, 0);
+        printf("Void function declaration executed\n");  
+    }
+    | VOID_TYPE IDENTIFIER LPAREN RPAREN scope_start statement_list scope_end
+    {      
+        insert_symbol($2, TYPE_VOID, FUNCTION, 0);
+        printf("Void function declaration (no parameters) executed\n");  
+    }
     ;
 
 parameter_list:
@@ -250,6 +264,9 @@ parameter_list:
 
 parameter:
     type IDENTIFIER
+    {
+        insert_symbol($2, $1, PARAMETER, 0);
+    }
     ;
 
 return_stmt:
