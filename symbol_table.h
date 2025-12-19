@@ -54,24 +54,6 @@ SymbolEntry *lookup_symbol(const char *name);
 int update_symbol_initialized(const char *name);
 int update_symbol_used(const char *name);
 
-// void destroy_symbol_table(SymbolTable *table);
-
-// // Scope Management
-
-// void exit_scope(SymbolTable *table);
-// Scope* get_current_scope(SymbolTable *table);
-// Scope* get_global_scope(SymbolTable *table);
-
-// Symbol Operations
-
-// SymbolEntry* lookup_symbol_current_scope(SymbolTable *table, const char *name);
-
-// // Utility Functions
-// void print_symbol_table(SymbolTable *table);
-// void print_scope(SymbolTable *table, Scope *scope);
-// int get_symbol_count(SymbolTable *table);
-// int check_unused_variables(SymbolTable *table);
-
 unsigned int hash_function(const char *str);
 
 #endif

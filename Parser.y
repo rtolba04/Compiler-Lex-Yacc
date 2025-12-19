@@ -113,7 +113,11 @@ type:
 
 assignment_stmt:
     IDENTIFIER ASSIGN expression SEMICOLON
-    { printf("Assignment: %s\n", $1); }
+    {
+        if (!update_symbol_initialized($1)) {
+            yyerror("Undeclared variable in assignment");
+        }
+    }
   
     ;
 
@@ -170,25 +174,37 @@ condition:
     ;
 
 if_stmt:
-    IF LPAREN condition RPAREN LBRACE statement_list RBRACE                                { printf("IF statement executed\n"); }
-    | IF LPAREN condition RPAREN LBRACE statement_list RBRACE ELSE LBRACE statement_list RBRACE   {printf("IF-ELSE statement executed\n");  }
+    IF LPAREN condition RPAREN scope_start statement_list scope_end                               { printf("IF statement executed\n"); }
+    | IF LPAREN condition RPAREN scope_start statement_list scope_end ELSE scope_start statement_list scope_end   {printf("IF-ELSE statement executed\n");  }
     ;
 
 while_stmt:
-    WHILE LPAREN condition RPAREN LBRACE statement_list RBRACE                             {printf("WHILE loop executed\n");}
+    WHILE LPAREN condition RPAREN 
+    LBRACE  { enter_scope(); }
+    statement_list 
+    RBRACE  { exit_scope(); }                           
+    {printf("WHILE loop executed\n");}
     ;
 
 for_stmt:
-    FOR LPAREN declaration_stmt condition SEMICOLON assign RPAREN LBRACE statement_list RBRACE    { printf("FOR loop with declaration executed\n");    }
+    FOR LPAREN declaration_stmt condition SEMICOLON assign RPAREN 
+    LBRACE  { enter_scope(); }
+    statement_list 
+    RBRACE  { exit_scope(); }                           
+    { printf("FOR loop with declaration executed\n");    }
     ;
 
 
 switch_stmt:
-    SWITCH LPAREN IDENTIFIER RPAREN LBRACE case_list RBRACE
+    SWITCH LPAREN IDENTIFIER RPAREN scope_start case_list scope_end
     {    printf("SWITCH statement executed\n");  }
-    | SWITCH LPAREN IDENTIFIER RPAREN LBRACE case_list default_case RBRACE
+    | SWITCH LPAREN IDENTIFIER RPAREN scope_start case_list default_case scope_end
     {   printf("SWITCH statement with DEFAULT executed\n");   }
     ;
+
+scope_start: LBRACE { enter_scope(); };
+
+scope_end:   RBRACE { exit_scope(); };
 
 case_list:
     case_stmt
@@ -210,11 +226,20 @@ default_case:
     ;
 
 function_decl:
-    type IDENTIFIER LPAREN parameter_list RPAREN LBRACE statement_list RBRACE
+    type IDENTIFIER LPAREN parameter_list RPAREN 
+    LBRACE { enter_scope(); }
+    statement_list 
+    RBRACE { exit_scope(); }
     {       printf("Function declaration executed\n");   }
-    | type IDENTIFIER LPAREN RPAREN LBRACE statement_list RBRACE
+    | type IDENTIFIER LPAREN RPAREN 
+    LBRACE  { enter_scope(); }
+    statement_list 
+    RBRACE  { exit_scope(); }
     {       printf("Function declaration (no parameters) executed\n");    }
-    | VOID_TYPE IDENTIFIER LPAREN parameter_list RPAREN LBRACE statement_list RBRACE
+    | VOID_TYPE IDENTIFIER LPAREN parameter_list RPAREN 
+    LBRACE  { enter_scope(); }
+    statement_list 
+    RBRACE  { exit_scope(); }
     {       printf("Void function declaration executed\n");   }
     ;
 
@@ -238,10 +263,16 @@ return_stmt:
     }
     ;
 
+
 do_while_stmt:
-    DO LBRACE statement_list RBRACE WHILE LPAREN condition RPAREN SEMICOLON
+    DO 
+    LBRACE  { enter_scope(); }  
+    statement_list 
+    RBRACE  { exit_scope(); }
+    WHILE LPAREN condition RPAREN SEMICOLON
     { printf("DO-WHILE loop executed\n"); }
     ;
+
 
 
 
