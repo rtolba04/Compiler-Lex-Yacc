@@ -25,6 +25,7 @@ NEWLINE     \n
 "float"         { return FLOAT_TYPE; }
 "char"          { return CHAR_TYPE; }
 "string"        { return STRING_TYPE; }
+"bool"          { return BOOL_TYPE; } 
 "const"         { return CONST; }
 "if"            { return IF; }
 "else"          { return ELSE; }
@@ -37,6 +38,8 @@ NEWLINE     \n
 "return"        { return RETURN; }
 "do"            { return DO; }
 "void"          { return VOID_TYPE; }
+"true"          { return TRUE_COND; }
+"false"         { return FALSE_COND; }
 
 "+"             { return PLUS; }
 "-"             { return MINUS; }

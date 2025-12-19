@@ -15,9 +15,9 @@ extern FILE *yyin;
     char charval;     
 }
 
-%token INT FLOAT_TYPE STRING_TYPE CHAR_TYPE CONST
+%token INT FLOAT_TYPE STRING_TYPE CHAR_TYPE CONST BOOL_TYPE
 %token IF ELSE WHILE FOR DO SWITCH CASE DEFAULT BREAK
-%token RETURN VOID_TYPE
+%token RETURN VOID_TYPE TRUE_COND FALSE_COND
 
 %token PLUS MINUS MULTIPLY DIVIDE MODULO
 %token ASSIGN EQUAL NOT_EQUAL
@@ -34,7 +34,7 @@ extern FILE *yyin;
 %token <floatval> FLOAT 
 
 
-%type <integer> expression T F condition assign
+%type <integer> expression T F condition assign bool_expression
 %start program
 %%
 
@@ -60,23 +60,40 @@ statement:
     | return_stmt
     ;
 
+
+
 declaration_stmt:
     type IDENTIFIER SEMICOLON
     | CONST type IDENTIFIER ASSIGN expression SEMICOLON
     | type IDENTIFIER ASSIGN expression SEMICOLON
+    | BOOL_TYPE IDENTIFIER SEMICOLON                              
+    | BOOL_TYPE IDENTIFIER ASSIGN bool_expression SEMICOLON   /* USE bool_expression */
+    {
+        printf("Boolean variable declared: %s\n", $2);
+    }
     ;
+
+bool_expression:
+    TRUE_COND            { $$ = 1; }
+    | FALSE_COND         { $$ = 0; }
+    | LPAREN condition RPAREN      { $$ = $2; }
+    ;
+
+
 
 type:
     INT
     | FLOAT_TYPE
     | STRING_TYPE
-    | CHAR_TYPE      
+    | CHAR_TYPE     
     ;
 
 assignment_stmt:
     IDENTIFIER ASSIGN expression SEMICOLON
     { printf("Assignment: %s\n", $1); }
+  
     ;
+
 assign:
     IDENTIFIER ASSIGN expression  { 
         printf("Assignment executed: %s \n", $1);
@@ -89,6 +106,7 @@ expression:
     | expression MINUS T             { $$ = $1 - $3; }
     | T                             { $$ = $1; }
     ;
+ 
 
 T:
     T MULTIPLY F                    { $$ = $1 * $3; }
@@ -102,7 +120,7 @@ T:
     ;
 
 F:
-    LPAREN expression RPAREN        { $$ = $2; }
+    LPAREN condition RPAREN        { $$ = $2; }
     | MINUS F                       { $$ = -$2; }
     | IDENTIFIER                    { /* Need symbol table lookup */ }
     | IDENTIFIER LPAREN argument_list RPAREN
@@ -111,6 +129,8 @@ F:
     {      printf("Function call: %s() with no arguments executed\n", $1);  $$ = 0;     }
     | FLOAT                         { $$ = $1; }
     | NUMBER                        { $$ = $1; }
+    | TRUE_COND                     { $$ = 1; }
+    | FALSE_COND                    { $$ = 0; }
     ;
 
 condition:
@@ -123,6 +143,7 @@ condition:
     | expression AND expression { $$ = ($1 && $3); }
     | expression OR expression { $$ = ($1 || $3); }
     | NOT expression { $$ = !$2; }
+    | expression { /* Need symbol table lookup for boolean variable */ }
     ;
 
 if_stmt:
