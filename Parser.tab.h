@@ -93,17 +93,18 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 11 "Parser.y"
+#line 12 "Parser.y"
 
     int integer;      
     float floatval;     
     char *string;     
-    char charval;     
+    char charval;  
+    DataType datatype;   
 
 
 
 /* Line 1676 of yacc.c  */
-#line 107 "Parser.tab.h"
+#line 108 "Parser.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

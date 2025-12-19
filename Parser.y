@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include "symbol_table.h"
 
 void yyerror(const char *s);
 int yylex(void);
@@ -12,7 +13,8 @@ extern FILE *yyin;
     int integer;      
     float floatval;     
     char *string;     
-    char charval;     
+    char charval;  
+    DataType datatype;   
 }
 
 %token INT FLOAT_TYPE STRING_TYPE CHAR_TYPE CONST BOOL_TYPE
@@ -34,11 +36,15 @@ extern FILE *yyin;
 %token <floatval> FLOAT 
 
 
+
+
 %type <integer> expression T F condition assign bool_expression
+%type <datatype> type
 %start program
 %%
 
 program: 
+    { CreateSymbolTable(); }
     statement_list
     ;
 
@@ -64,14 +70,31 @@ statement:
 
 declaration_stmt:
     type IDENTIFIER SEMICOLON
-    | CONST type IDENTIFIER ASSIGN expression SEMICOLON
-    | type IDENTIFIER ASSIGN expression SEMICOLON
-    | BOOL_TYPE IDENTIFIER SEMICOLON                              
-    | BOOL_TYPE IDENTIFIER ASSIGN bool_expression SEMICOLON   /* USE bool_expression */
     {
+        insert_symbol($2, $1, VARIABLE, 0);
+    }
+    | CONST type IDENTIFIER ASSIGN expression SEMICOLON
+    {
+        SymbolEntry *entry = insert_symbol($3, $2, VARIABLE, 1);
+        if (entry) entry->is_initialized = 1;
+    }
+    | type IDENTIFIER ASSIGN expression SEMICOLON
+    {
+        SymbolEntry *entry = insert_symbol($2, $1, VARIABLE, 0);
+        if (entry) entry->is_initialized = 1;
+    }
+    | BOOL_TYPE IDENTIFIER SEMICOLON
+    {
+        insert_symbol($2, TYPE_BOOL, VARIABLE, 0);
+    }
+    | BOOL_TYPE IDENTIFIER ASSIGN bool_expression SEMICOLON
+    {
+        SymbolEntry *entry = insert_symbol($2, TYPE_BOOL, VARIABLE, 0);
+        if (entry) entry->is_initialized = 1;
         printf("Boolean variable declared: %s\n", $2);
     }
     ;
+
 
 bool_expression:
     TRUE_COND            { $$ = 1; }
@@ -82,10 +105,10 @@ bool_expression:
 
 
 type:
-    INT
-    | FLOAT_TYPE
-    | STRING_TYPE
-    | CHAR_TYPE     
+    INT               { $$ = TYPE_INT; }
+    | FLOAT_TYPE      { $$ = TYPE_FLOAT; }
+    | STRING_TYPE     { $$ = TYPE_STRING; }
+    | CHAR_TYPE       { $$ = TYPE_CHAR; }
     ;
 
 assignment_stmt:
