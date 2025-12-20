@@ -11,6 +11,7 @@ void yyerror(const char *s);
 int yylex(void);
 extern FILE *yyin;
 int loop_depth = 0;
+int switch_depth = 0;
 
 %}
 
@@ -43,7 +44,7 @@ int loop_depth = 0;
 
 
 
-%type <integer> expression T F condition assign bool_expression
+%type <integer> expression T F condition assign bool_expression statement statement_list break_stmt block switch_stmt
 %type <datatype> type
 %type <string> function_name function_name_void
 %start program
@@ -61,40 +62,39 @@ global_element:
     function_decl | declaration_stmt ;
 
 statement_list:
-    statement
-    | statement_list statement
+    statement { $$ = $1; }
+    | statement_list statement { $$ = $2; }
     ;
 
 statement:
-    declaration_stmt
-    | assignment_stmt
-    | expression SEMICOLON         
-    | if_stmt
-    | while_stmt
-    | for_stmt
-    | switch_stmt
-    | function_decl
-    | do_while_stmt
-    | return_stmt
-    | block
-    | break_stmt
+    declaration_stmt { $$ = 0; }
+    | assignment_stmt  { $$ = 0; }
+    | expression SEMICOLON { $$ = 0; }
+    | if_stmt { $$ = 0; }
+    | while_stmt { $$ = 0; }
+    | for_stmt { $$ = 0; }
+    | switch_stmt { $$ = 0; }
+    | function_decl { $$ = 0; }
+    | do_while_stmt { $$ = 0; }
+    | return_stmt { $$ = 0; }
+    | break_stmt { $$ = $1; }
+    | block    { $$ = $1; }
     ;
 
 break_stmt:
     BREAK SEMICOLON
     {
-        if (loop_depth == 0) {
-            yyerror("Error: 'break' statement used outside of loop");
+        if (loop_depth == 0 && switch_depth == 0) {
+            yyerror("Error: 'break' statement used outside of loop or switch");
         }
         printf("BREAK statement executed\n");
+        $$ = 1; 
     }
     ;
 block: 
-    LBRACE 
-    { enter_scope("block"); } 
+    LBRACE { enter_scope("block"); } 
     statement_list 
-    RBRACE 
-    { exit_scope(); }
+    RBRACE { exit_scope(); $$ = $3; }
     ;
 
 
@@ -269,8 +269,15 @@ for_stmt:
 
 
 switch_stmt:
-    SWITCH LPAREN IDENTIFIER RPAREN scope_start case_list scope_end
+    SWITCH LPAREN IDENTIFIER RPAREN 
+    { 
+        switch_depth++; 
+        enter_scope("switch-scope");
+    }
+    LBRACE case_list switch_optional_default RBRACE
     {
+        switch_depth--;
+        exit_scope();
         SymbolEntry *entry = lookup_symbol($3);
         if (!entry) {
             yyerror("Undeclared variable in SWITCH statement");
@@ -282,26 +289,17 @@ switch_stmt:
             update_symbol_used($3);
             printf("SWITCH statement executed on variable '%s'\n", $3);
         }
-    }
-    | SWITCH LPAREN IDENTIFIER RPAREN scope_start case_list default_case scope_end
-    {
-        SymbolEntry *entry = lookup_symbol($3);
-        if (!entry) {
-            yyerror("Undeclared variable in SWITCH statement");
-        } 
-        else if (entry->is_initialized == 0) {
-            yyerror("Use of uninitialized variable in SWITCH statement");
-        }
-        else {
-            update_symbol_used($3);
-            printf("SWITCH statement with DEFAULT executed on variable '%s'\n", $3);
-        }
+        $$ = 0; 
     }
     ;
 
-scope_start: LBRACE { enter_scope("switch-scope"); };
 
-scope_end:   RBRACE { exit_scope(); };
+switch_optional_default:
+    default_case
+    | 
+    ;
+
+
 
 case_list:
     case_stmt
@@ -310,33 +308,33 @@ case_list:
 
 case_stmt:
     CASE expression COLON statement_list
-    {      printf("CASE executed\n");    }
+    {
+        if ($4 == 0) {
+            yyerror("Semantic Error: Case must end with a 'break;' statement");
+        }
+        printf("CASE executed successfully with mandatory break\n");
+    }
     ;
 
 default_case:
     DEFAULT COLON statement_list
-    {        printf("DEFAULT case executed\n");   }
+    {
+        if ($3 == 0) {
+            yyerror("Semantic Error: Default case must end with a 'break;' statement");
+        }
+        printf("DEFAULT case executed successfully with mandatory break\n");
+    }
     ;
 
 function_decl:
-    function_name 
-    LPAREN parameter_list RPAREN LBRACE statement_list scope_end 
-    {
-        printf("Function declaration executed\n");
-    }
-    | function_name LPAREN RPAREN LBRACE statement_list scope_end
-    {       
-       
-        printf("Function declaration (no parameters) executed\n");    
-    }
-    | function_name_void LPAREN parameter_list RPAREN LBRACE statement_list scope_end
-    {      
-        printf("Void function declaration executed\n");  
-    }
-    | function_name_void LPAREN RPAREN LBRACE statement_list scope_end
-    {       
-        printf("Void function declaration (no parameters) executed\n");  
-    }
+    function_name LPAREN parameter_list RPAREN block
+    { printf("Function declaration executed\n"); }
+    | function_name LPAREN RPAREN block
+    { printf("Function declaration (no parameters) executed\n"); }
+    | function_name_void LPAREN parameter_list RPAREN block
+    { printf("Void function declaration executed\n"); }
+    | function_name_void LPAREN RPAREN block
+    { printf("Void function declaration (no parameters) executed\n"); }
     ;
 
 function_name:
