@@ -1,0 +1,5 @@
+*.exe
+*.yy.c
+*.output
+*.tab.c
+*.tab.h
