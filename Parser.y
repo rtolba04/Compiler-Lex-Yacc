@@ -286,13 +286,14 @@ default_case:
     ;
 
 function_decl:
-    type IDENTIFIER LPAREN parameter_list RPAREN scope_start statement_list scope_end {
-        insert_symbol($2, $1, FUNCTION, 0);
+    function_name 
+    LPAREN parameter_list RPAREN scope_start statement_list scope_end 
+    {
         printf("Function declaration executed\n");
     }
-    | type IDENTIFIER LPAREN RPAREN scope_start statement_list scope_end
+    | function_name LPAREN RPAREN scope_start statement_list scope_end
     {       
-        insert_symbol($2, $1, FUNCTION, 0);
+       
         printf("Function declaration (no parameters) executed\n");    
     }
     | VOID_TYPE IDENTIFIER LPAREN parameter_list RPAREN scope_start statement_list scope_end
@@ -306,6 +307,12 @@ function_decl:
         printf("Void function declaration (no parameters) executed\n");  
     }
     ;
+
+function_name:
+    type IDENTIFIER 
+    {
+        insert_symbol($2, $1, FUNCTION, 0);
+    };
 
 parameter_list:
     parameter

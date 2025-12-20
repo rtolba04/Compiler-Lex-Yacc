@@ -60,6 +60,7 @@ SymbolEntry *insert_symbol(const char *name, DataType type, SymbolKind kind, int
         if (strcmp(entry->name, name) == 0)
         {
             printf("Error: Variable '%s' already declared in this scope\n", name);
+            print_symbol_table();
             return NULL;
         }
         entry = entry->next;
@@ -76,7 +77,7 @@ SymbolEntry *insert_symbol(const char *name, DataType type, SymbolKind kind, int
     // inserting in a linked list
     new_entry->next = current_scope->symbols[index];
     current_scope->symbols[index] = new_entry;
-
+    print_symbol_table();
     return new_entry;
 }
 
@@ -94,6 +95,7 @@ SymbolEntry *lookup_symbol(const char *name)
         {
             if (strcmp(entry->name, name) == 0)
             {
+                print_symbol_table();
                 return entry;
             }
             entry = entry->next;
@@ -102,7 +104,7 @@ SymbolEntry *lookup_symbol(const char *name)
         // recurse to parent scope
         scope = scope->parent;
     }
-
+    print_symbol_table();
     return NULL; // if this reached than not found
 }
 
@@ -112,16 +114,19 @@ int update_symbol_initialized(const char *name)
     if (entry == NULL)
     {
         printf("Error: Symbol '%s' not found\n", name);
+        print_symbol_table();
         return 0;
     }
 
     if (entry->is_const && entry->is_initialized)
     {
         printf("Error: Cannot reassign const variable '%s'\n", name);
+        print_symbol_table();
         return 0;
     }
 
     entry->is_initialized = 1;
+    print_symbol_table();
     return 1;
 }
 
@@ -131,10 +136,12 @@ int update_symbol_used(const char *name)
     if (entry == NULL)
     {
         printf("Error: Symbol '%s' not declared\n", name);
+        print_symbol_table();
         return 0;
     }
 
     entry->is_used = 1;
+    print_symbol_table();
     return 1;
 }
 
