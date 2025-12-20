@@ -47,7 +47,7 @@ typedef struct Scope
 } Scope;
 
 void CreateSymbolTable();
-void enter_scope();
+void enter_scope(const char *scope_name);
 void exit_scope();
 SymbolEntry *insert_symbol(const char *name, DataType type, SymbolKind kind, int is_const);
 SymbolEntry *lookup_symbol(const char *name);

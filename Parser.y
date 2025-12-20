@@ -44,6 +44,7 @@ extern FILE *yyin;
 
 %type <integer> expression T F condition assign bool_expression
 %type <datatype> type
+%type <string> function_name function_name_void
 %start program
 %%
 
@@ -210,22 +211,26 @@ condition:
     ;
 
 if_stmt:
-    IF LPAREN condition RPAREN scope_start statement_list scope_end                               { printf("IF statement executed\n"); }
-    | IF LPAREN condition RPAREN scope_start statement_list scope_end ELSE scope_start statement_list scope_end   {printf("IF-ELSE statement executed\n");  }
+    if_begin
+    LPAREN condition RPAREN LBRACE statement_list scope_end                               { printf("IF statement executed\n"); }
+    | if_begin
+    LPAREN condition RPAREN LBRACE statement_list scope_end ELSE { enter_scope("else-block"); }
+    LBRACE statement_list scope_end   {printf("IF-ELSE statement executed\n");  }
+    ;
+    
+if_begin:
+    IF { enter_scope("if-statement"); }
     ;
 
 while_stmt:
-    WHILE LPAREN condition RPAREN 
-    LBRACE  { enter_scope(); }
-    statement_list 
+    WHILE { enter_scope("while-loop"); } LPAREN condition RPAREN LBRACE statement_list 
     RBRACE  { exit_scope(); }                           
     {printf("WHILE loop executed\n");}
     ;
 
 for_stmt:
-    FOR LPAREN declaration_stmt condition SEMICOLON assign RPAREN 
-    LBRACE  { enter_scope(); }
-    statement_list 
+    FOR { enter_scope("for-loop"); }
+    LPAREN declaration_stmt condition SEMICOLON assign RPAREN LBRACE  statement_list 
     RBRACE  { exit_scope(); }                           
     { printf("FOR loop with declaration executed\n");    }
     ;
@@ -262,7 +267,7 @@ switch_stmt:
     }
     ;
 
-scope_start: LBRACE { enter_scope(); };
+scope_start: LBRACE { enter_scope("switch-scope"); };
 
 scope_end:   RBRACE { exit_scope(); };
 
@@ -287,23 +292,21 @@ default_case:
 
 function_decl:
     function_name 
-    LPAREN parameter_list RPAREN scope_start statement_list scope_end 
+    LPAREN parameter_list RPAREN LBRACE statement_list scope_end 
     {
         printf("Function declaration executed\n");
     }
-    | function_name LPAREN RPAREN scope_start statement_list scope_end
+    | function_name LPAREN RPAREN LBRACE statement_list scope_end
     {       
        
         printf("Function declaration (no parameters) executed\n");    
     }
-    | VOID_TYPE IDENTIFIER LPAREN parameter_list RPAREN scope_start statement_list scope_end
+    | function_name_void LPAREN parameter_list RPAREN LBRACE statement_list scope_end
     {      
-        insert_symbol($2, TYPE_VOID, FUNCTION, 0);
         printf("Void function declaration executed\n");  
     }
-    | VOID_TYPE IDENTIFIER LPAREN RPAREN scope_start statement_list scope_end
-    {      
-        insert_symbol($2, TYPE_VOID, FUNCTION, 0);
+    | function_name_void LPAREN RPAREN LBRACE statement_list scope_end
+    {       
         printf("Void function declaration (no parameters) executed\n");  
     }
     ;
@@ -312,6 +315,14 @@ function_name:
     type IDENTIFIER 
     {
         insert_symbol($2, $1, FUNCTION, 0);
+        enter_scope($2); 
+    };
+
+function_name_void:
+    VOID_TYPE IDENTIFIER 
+    {
+        insert_symbol($2, TYPE_VOID, FUNCTION, 0);
+        enter_scope($2); 
     };
 
 parameter_list:
@@ -340,11 +351,14 @@ return_stmt:
 
 do_while_stmt:
     DO 
-    LBRACE  { enter_scope(); }  
+    LBRACE  { enter_scope("while-loop"); }  
     statement_list 
-    RBRACE  { exit_scope(); }
-    WHILE LPAREN condition RPAREN SEMICOLON
-    { printf("DO-WHILE loop executed\n"); }
+    RBRACE  
+    WHILE LPAREN condition RPAREN SEMICOLON 
+    { 
+        exit_scope();
+        printf("DO-WHILE loop executed\n"); 
+    }
     ;
 
 
@@ -371,7 +385,6 @@ int main(int argc, char **argv) {
     }
     if(yyparse() == 0) {
         printf("Parsing completed successfully.\n");
-        print_symbol_table();
     } else {
         printf("Parsing failed.\n");
     }
