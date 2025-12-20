@@ -311,15 +311,11 @@ case_list:
 case_stmt:
     CASE expression COLON statement_list
     {      printf("CASE executed\n");    }
-    | CASE expression COLON statement_list BREAK SEMICOLON
-    {      printf("CASE with BREAK executed\n");    }
     ;
 
 default_case:
     DEFAULT COLON statement_list
     {        printf("DEFAULT case executed\n");   }
-    | DEFAULT COLON statement_list BREAK SEMICOLON
-    {     printf("DEFAULT case with BREAK executed\n");   }
     ;
 
 function_decl:
