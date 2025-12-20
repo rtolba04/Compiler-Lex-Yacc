@@ -10,6 +10,7 @@
 void yyerror(const char *s);
 int yylex(void);
 extern FILE *yyin;
+int loop_depth = 0;
 
 %}
 
@@ -62,6 +63,7 @@ global_element:
 statement_list:
     statement
     | statement_list statement
+    ;
 
 statement:
     declaration_stmt
@@ -75,6 +77,17 @@ statement:
     | do_while_stmt
     | return_stmt
     | block
+    | break_stmt
+    ;
+
+break_stmt:
+    BREAK SEMICOLON
+    {
+        if (loop_depth == 0) {
+            yyerror("Error: 'break' statement used outside of loop");
+        }
+        printf("BREAK statement executed\n");
+    }
     ;
 block: 
     LBRACE 
@@ -231,7 +244,12 @@ if_stmt:
     
 
 while_stmt:
-    WHILE LPAREN condition RPAREN block { printf("WHILE loop executed\n"); }
+    WHILE LPAREN condition RPAREN 
+    { loop_depth++; }
+    block { 
+        loop_depth--;
+        printf("WHILE loop executed\n"); 
+    }
     ;
 
 for_stmt:
@@ -240,8 +258,10 @@ for_stmt:
         enter_scope("for-loop"); 
     }
     LPAREN declaration_stmt condition SEMICOLON assign RPAREN 
+    { loop_depth++; }
     statement  
     { 
+        loop_depth--;
         printf("FOR loop executed\n");
         exit_scope(); 
     }
@@ -363,7 +383,9 @@ return_stmt:
 
 do_while_stmt:
     DO 
-    statement   
+    { loop_depth++; }
+    statement 
+    { loop_depth--; }  
     WHILE LPAREN condition RPAREN SEMICOLON
     {
         printf("DO-WHILE loop executed\n");
