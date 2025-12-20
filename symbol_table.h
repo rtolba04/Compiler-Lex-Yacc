@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #define HASH_SIZE 211
+
 typedef enum
 {
     TYPE_INT,

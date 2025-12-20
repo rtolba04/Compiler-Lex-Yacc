@@ -1,3 +1,7 @@
+%code requires {
+#include "symbol_table.h"
+}
+
 %{
 #include <stdio.h>
 #include <stdlib.h>
