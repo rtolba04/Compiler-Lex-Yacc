@@ -57,4 +57,6 @@ int update_symbol_used(const char *name);
 
 unsigned int hash_function(const char *str);
 
+void print_symbol_table_recursive(Scope *scope);
+void print_symbol_table();
 #endif

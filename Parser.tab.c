@@ -2405,6 +2405,7 @@ int main(int argc, char **argv) {
     }
     if(yyparse() == 0) {
         printf("Parsing completed successfully.\n");
+        print_symbol_table();
     } else {
         printf("Parsing failed.\n");
     }

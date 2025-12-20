@@ -137,3 +137,43 @@ int update_symbol_used(const char *name)
     entry->is_used = 1;
     return 1;
 }
+
+void print_symbol_table_recursive(Scope *scope)
+{
+    if (!scope)
+        return;
+
+    // Print this scope
+    printf("\n--- Symbol Table (Scope ID: %d, Level: %d, Name: %s) ---\n",
+           scope->id,
+           scope->level,
+           scope->name ? scope->name : "(unnamed)");
+
+    for (int i = 0; i < HASH_SIZE; i++)
+    {
+        SymbolEntry *entry = scope->symbols[i];
+        while (entry)
+        {
+            printf("Name: %-10s | Type: %-10d | Kind: %-10d | Const: %d | Init: %d | Used: %d\n",
+                   entry->name,
+                   entry->type,
+                   entry->kind,
+                   entry->is_const,
+                   entry->is_initialized,
+                   entry->is_used);
+            entry = entry->next;
+        }
+    }
+
+    printf("--- End of Scope ---\n");
+
+    // Recursively print parent scopes
+    if (scope->parent)
+    {
+        print_symbol_table_recursive(scope->parent);
+    }
+}
+void print_symbol_table()
+{
+    print_symbol_table_recursive(current_scope);
+}
