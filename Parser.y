@@ -159,7 +159,11 @@ F:
         if (!entry) {
             yyerror("Undeclared variable used in expression");
             $$ = 0; 
-        } else {
+        } else if (entry->is_initialized == 0) {
+            yyerror("Use of uninitialized variable");
+            $$ = 0;
+        }
+         else {
             update_symbol_used($1);
             $$ = 0; // or entry->type if you want type checking later
         }
@@ -233,7 +237,11 @@ switch_stmt:
         SymbolEntry *entry = lookup_symbol($3);
         if (!entry) {
             yyerror("Undeclared variable in SWITCH statement");
-        } else {
+        } 
+        else if (entry->is_initialized == 0) {
+            yyerror("Use of uninitialized variable in SWITCH statement");
+        }
+        else {
             update_symbol_used($3);
             printf("SWITCH statement executed on variable '%s'\n", $3);
         }
@@ -243,7 +251,11 @@ switch_stmt:
         SymbolEntry *entry = lookup_symbol($3);
         if (!entry) {
             yyerror("Undeclared variable in SWITCH statement");
-        } else {
+        } 
+        else if (entry->is_initialized == 0) {
+            yyerror("Use of uninitialized variable in SWITCH statement");
+        }
+        else {
             update_symbol_used($3);
             printf("SWITCH statement with DEFAULT executed on variable '%s'\n", $3);
         }
