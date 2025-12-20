@@ -1,6 +1,9 @@
 %code requires {
 #include "symbol_table.h"
+#include "quad.h"
 }
+
+
 
 %{
 #include <stdio.h>
@@ -12,6 +15,8 @@ int yylex(void);
 extern FILE *yyin;
 
 %}
+
+
 
 %union {
     int integer;      
@@ -369,9 +374,12 @@ int main(int argc, char **argv) {
         return 1;
         }
     }
+    
+
     if(yyparse() == 0) {
         printf("Parsing completed successfully.\n");
         print_symbol_table();
+        print_quads();
     } else {
         printf("Parsing failed.\n");
     }
