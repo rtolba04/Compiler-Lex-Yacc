@@ -49,14 +49,19 @@ extern FILE *yyin;
 %%
 
 program: 
-    { CreateSymbolTable(); }
-    statement_list
+    { CreateSymbolTable(); } 
+    global_list 
     ;
+
+global_list: 
+    global_element | global_list global_element ;
+
+global_element: 
+    function_decl | declaration_stmt ;
 
 statement_list:
     statement
     | statement_list statement
-    ;
 
 statement:
     declaration_stmt
@@ -69,6 +74,14 @@ statement:
     | function_decl
     | do_while_stmt
     | return_stmt
+    | block
+    ;
+block: 
+    LBRACE 
+    { enter_scope("block"); } 
+    statement_list 
+    RBRACE 
+    { exit_scope(); }
     ;
 
 
@@ -210,29 +223,28 @@ condition:
     | expression { $$ = $1; }
     ;
 
+    ;
 if_stmt:
-    if_begin
-    LPAREN condition RPAREN LBRACE statement_list scope_end                               { printf("IF statement executed\n"); }
-    | if_begin
-    LPAREN condition RPAREN LBRACE statement_list scope_end ELSE { enter_scope("else-block"); }
-    LBRACE statement_list scope_end   {printf("IF-ELSE statement executed\n");  }
-    ;
+    IF LPAREN condition RPAREN block   { printf("IF statement executed\n"); }
+    | IF LPAREN condition RPAREN block ELSE block {printf("IF-ELSE statement executed\n");  }
+    ;  
     
-if_begin:
-    IF { enter_scope("if-statement"); }
-    ;
 
 while_stmt:
-    WHILE { enter_scope("while-loop"); } LPAREN condition RPAREN LBRACE statement_list 
-    RBRACE  { exit_scope(); }                           
-    {printf("WHILE loop executed\n");}
+    WHILE LPAREN condition RPAREN block { printf("WHILE loop executed\n"); }
     ;
 
 for_stmt:
-    FOR { enter_scope("for-loop"); }
-    LPAREN declaration_stmt condition SEMICOLON assign RPAREN LBRACE  statement_list 
-    RBRACE  { exit_scope(); }                           
-    { printf("FOR loop with declaration executed\n");    }
+    FOR 
+    { 
+        enter_scope("for-loop"); 
+    }
+    LPAREN declaration_stmt condition SEMICOLON assign RPAREN 
+    statement  
+    { 
+        printf("FOR loop executed\n");
+        exit_scope(); 
+    }
     ;
 
 
@@ -351,13 +363,10 @@ return_stmt:
 
 do_while_stmt:
     DO 
-    LBRACE  { enter_scope("while-loop"); }  
-    statement_list 
-    RBRACE  
-    WHILE LPAREN condition RPAREN SEMICOLON 
-    { 
-        exit_scope();
-        printf("DO-WHILE loop executed\n"); 
+    statement   
+    WHILE LPAREN condition RPAREN SEMICOLON
+    {
+        printf("DO-WHILE loop executed\n");
     }
     ;
 
