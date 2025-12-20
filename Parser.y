@@ -271,6 +271,14 @@ for_stmt:
 switch_stmt:
     SWITCH LPAREN IDENTIFIER RPAREN 
     { 
+        SymbolEntry *entry = lookup_symbol($3);
+        if (!entry) {
+            yyerror("Undeclared variable in SWITCH statement");
+        } else if (entry->is_initialized == 0) {
+            yyerror("Use of uninitialized variable in SWITCH statement");
+        } else {
+            update_symbol_used($3);
+        }
         switch_depth++; 
         enter_scope("switch-scope");
     }
@@ -278,17 +286,7 @@ switch_stmt:
     {
         switch_depth--;
         exit_scope();
-        SymbolEntry *entry = lookup_symbol($3);
-        if (!entry) {
-            yyerror("Undeclared variable in SWITCH statement");
-        } 
-        else if (entry->is_initialized == 0) {
-            yyerror("Use of uninitialized variable in SWITCH statement");
-        }
-        else {
-            update_symbol_used($3);
-            printf("SWITCH statement executed on variable '%s'\n", $3);
-        }
+        printf("SWITCH statement executed on variable '%s'\n", $3);
         $$ = 0; 
     }
     ;
@@ -328,13 +326,25 @@ default_case:
 
 function_decl:
     function_name LPAREN parameter_list RPAREN block
-    { printf("Function declaration executed\n"); }
+    { 
+        printf("Function declaration executed\n"); 
+        exit_scope(); 
+    }
     | function_name LPAREN RPAREN block
-    { printf("Function declaration (no parameters) executed\n"); }
+    { 
+        printf("Function declaration (no parameters) executed\n"); 
+        exit_scope(); 
+    }
     | function_name_void LPAREN parameter_list RPAREN block
-    { printf("Void function declaration executed\n"); }
+    { 
+        printf("Void function declaration executed\n"); 
+        exit_scope(); 
+    }
     | function_name_void LPAREN RPAREN block
-    { printf("Void function declaration (no parameters) executed\n"); }
+    { 
+        printf("Void function declaration (no parameters) executed\n"); 
+        exit_scope(); 
+    }
     ;
 
 function_name:
