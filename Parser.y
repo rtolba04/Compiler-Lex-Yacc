@@ -238,15 +238,23 @@ condition:
 
     ;
 if_stmt:
-    IF LPAREN condition RPAREN block   { printf("IF statement executed\n"); }
-    | IF LPAREN condition RPAREN block ELSE block {printf("IF-ELSE statement executed\n");  }
+    IF LPAREN condition RPAREN  if_block { printf("IF statement executed\n"); }
+    | IF LPAREN condition RPAREN LBRACE  RBRACE ELSE else_block {printf("IF-ELSE statement executed\n");  }
     ;  
+
+if_block:
+    LBRACE {enter_scope("if-block");} statement_list {exit_scope();} RBRACE
+    ;
+else_block:
+    LBRACE {enter_scope("else-block");} statement_list {exit_scope();} RBRACE
+    ;
     
 
 while_stmt:
     WHILE LPAREN condition RPAREN 
     { loop_depth++; }
-    block { 
+    LBRACE {enter_scope("while");} statement_list {exit_scope();} RBRACE  
+    { 
         loop_depth--;
         printf("WHILE loop executed\n"); 
     }
@@ -254,12 +262,10 @@ while_stmt:
 
 for_stmt:
     FOR 
-    { 
-        enter_scope("for-loop"); 
-    }
+    { enter_scope("for-loop"); }
     LPAREN declaration_stmt condition SEMICOLON assign RPAREN 
     { loop_depth++; }
-    statement  
+    LBRACE statement_list RBRACE  
     { 
         loop_depth--;
         printf("FOR loop executed\n");
@@ -325,25 +331,26 @@ default_case:
     ;
 
 function_decl:
-    function_name LPAREN parameter_list RPAREN block
+    function_name LPAREN parameter_list RPAREN LBRACE statement_list  RBRACE
     { 
-        printf("Function declaration executed\n"); 
-        exit_scope(); 
+        printf("Function declaration executed\n");
+        {exit_scope();} 
+        
     }
-    | function_name LPAREN RPAREN block
+    | function_name LPAREN RPAREN LBRACE statement_list RBRACE
     { 
         printf("Function declaration (no parameters) executed\n"); 
-        exit_scope(); 
+        {exit_scope();} 
     }
-    | function_name_void LPAREN parameter_list RPAREN block
+    | function_name_void LPAREN parameter_list RPAREN LBRACE statement_list RBRACE
     { 
         printf("Void function declaration executed\n"); 
-        exit_scope(); 
+        {exit_scope();}
     }
-    | function_name_void LPAREN RPAREN block
+    | function_name_void LPAREN RPAREN LBRACE statement_list RBRACE
     { 
         printf("Void function declaration (no parameters) executed\n"); 
-        exit_scope(); 
+        {exit_scope();}
     }
     ;
 
@@ -388,16 +395,15 @@ return_stmt:
 do_while_stmt:
     DO 
     { loop_depth++; }
-    statement 
+    LBRACE {enter_scope("do-while");} 
+    statement_list 
+    {exit_scope();} RBRACE
     { loop_depth--; }  
     WHILE LPAREN condition RPAREN SEMICOLON
     {
         printf("DO-WHILE loop executed\n");
     }
     ;
-
-
-
 
 argument_list:
     expression
