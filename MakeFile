@@ -1,4 +1,5 @@
 all:
 	bison -d -v Parser.y
 	flex Lexer.l
-	gcc Parser.tab.c lex.yy.c -o compiler.exe
+	gcc Parser.tab.c lex.yy.c symbol_table.c -o compiler.exe -lfl
+	./compiler.exe text.txt 
