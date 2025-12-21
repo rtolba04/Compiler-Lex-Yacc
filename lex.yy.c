@@ -282,11 +282,11 @@ static void yy_fatal_error YY_PROTO(( yyconst char msg[] ));
 	*yy_cp = '\0'; \
 	yy_c_buf_p = yy_cp;
 
-#define YY_NUM_RULES 47
-#define YY_END_OF_BUFFER 48
+#define YY_NUM_RULES 48
+#define YY_END_OF_BUFFER 49
 static yyconst short int yy_accept[115] =
     {   0,
-        0,    0,   48,   47,   45,   46,   34,   24,   47,   35,
+        0,    0,   49,   47,   45,   46,   34,   24,   47,   35,
        36,   22,   20,   40,   21,   23,   43,   41,   39,   28,
        25,   29,   42,   42,   42,   42,   42,   42,   42,   42,
        42,   42,   42,   42,   37,   47,   38,   45,   27,   32,
@@ -431,18 +431,19 @@ static char *yy_last_accepting_cpos;
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "Lexer.l"
+#line 1 "lexer.l"
 #define INITIAL 0
-#line 2 "Lexer.l"
+#line 2 "lexer.l"
 #include "Parser.tab.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 int line_num = 1;
+int count_lexical_errors = 0;
 /* Regular Definitions */
 /* Identifiers can only start with letters or underscore but may contain digits afterwards*/
-#line 446 "lex.yy.c"
+#line 447 "lex.yy.c"
 
 /* Macros after this point can all be overridden by user definitions in
  * section 1.
@@ -593,11 +594,11 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
 
-#line 21 "Lexer.l"
+#line 22 "lexer.l"
 
 
 
-#line 601 "lex.yy.c"
+#line 602 "lex.yy.c"
 
 	if ( yy_init )
 		{
@@ -682,240 +683,248 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 24 "Lexer.l"
+#line 25 "lexer.l"
 { return INT; }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 25 "Lexer.l"
+#line 26 "lexer.l"
 { return FLOAT_TYPE; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 26 "Lexer.l"
+#line 27 "lexer.l"
 { return CHAR_TYPE; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 27 "Lexer.l"
+#line 28 "lexer.l"
 { return STRING_TYPE; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 28 "Lexer.l"
+#line 29 "lexer.l"
 { return BOOL_TYPE; } 
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 29 "Lexer.l"
+#line 30 "lexer.l"
 { return CONST; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 30 "Lexer.l"
+#line 31 "lexer.l"
 { return IF; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 31 "Lexer.l"
+#line 32 "lexer.l"
 { return ELSE; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 32 "Lexer.l"
+#line 33 "lexer.l"
 { return WHILE; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 33 "Lexer.l"
+#line 34 "lexer.l"
 { return FOR; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 34 "Lexer.l"
+#line 35 "lexer.l"
 { return SWITCH; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 35 "Lexer.l"
+#line 36 "lexer.l"
 { return CASE; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 36 "Lexer.l"
+#line 37 "lexer.l"
 { return DEFAULT; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 37 "Lexer.l"
+#line 38 "lexer.l"
 { return BREAK; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 38 "Lexer.l"
+#line 39 "lexer.l"
 { return RETURN; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 39 "Lexer.l"
+#line 40 "lexer.l"
 { return DO; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 40 "Lexer.l"
+#line 41 "lexer.l"
 { return VOID_TYPE; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 41 "Lexer.l"
+#line 42 "lexer.l"
 { return TRUE_COND; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 42 "Lexer.l"
+#line 43 "lexer.l"
 { return FALSE_COND; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 44 "Lexer.l"
+#line 45 "lexer.l"
 { return PLUS; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 45 "Lexer.l"
+#line 46 "lexer.l"
 { return MINUS; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 46 "Lexer.l"
+#line 47 "lexer.l"
 { return MULTIPLY; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 47 "Lexer.l"
+#line 48 "lexer.l"
 { return DIVIDE; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 48 "Lexer.l"
+#line 49 "lexer.l"
 { return MODULO; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 49 "Lexer.l"
+#line 50 "lexer.l"
 { return ASSIGN; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 50 "Lexer.l"
+#line 51 "lexer.l"
 { return EQUAL; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 51 "Lexer.l"
+#line 52 "lexer.l"
 { return NOT_EQUAL; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 52 "Lexer.l"
+#line 53 "lexer.l"
 { return LESS_THAN; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 53 "Lexer.l"
+#line 54 "lexer.l"
 { return GREATER_THAN; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 54 "Lexer.l"
+#line 55 "lexer.l"
 { return LESS_EQUAL; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 55 "Lexer.l"
+#line 56 "lexer.l"
 { return GREATER_EQUAL; }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 56 "Lexer.l"
+#line 57 "lexer.l"
 { return AND; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 57 "Lexer.l"
+#line 58 "lexer.l"
 { return OR; }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 58 "Lexer.l"
+#line 59 "lexer.l"
 { return NOT; }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 60 "Lexer.l"
+#line 61 "lexer.l"
 { return LPAREN; }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 61 "Lexer.l"
+#line 62 "lexer.l"
 { return RPAREN; }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 62 "Lexer.l"
+#line 63 "lexer.l"
 { return LBRACE; }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 63 "Lexer.l"
+#line 64 "lexer.l"
 { return RBRACE; }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 64 "Lexer.l"
+#line 65 "lexer.l"
 { return SEMICOLON; }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 65 "Lexer.l"
+#line 66 "lexer.l"
 { return COMMA; }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 66 "Lexer.l"
+#line 67 "lexer.l"
 { return COLON; }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 70 "Lexer.l"
+#line 71 "lexer.l"
 { yylval.string = strdup(yytext); return IDENTIFIER; }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 71 "Lexer.l"
+#line 72 "lexer.l"
 { yylval.integer = atoi(yytext); return NUMBER; }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 72 "Lexer.l"
+#line 73 "lexer.l"
 { yylval.floatval = atof(yytext); return FLOAT; }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 76 "Lexer.l"
+#line 77 "lexer.l"
 { /* skip */ }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 77 "Lexer.l"
+#line 78 "lexer.l"
 { line_num++; }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 82 "Lexer.l"
+#line 80 "lexer.l"
+{
+    fprintf(stderr, "Lexical Error at line %d: Unknown character '%c'\n", line_num, *yytext);
+    count_lexical_errors++;
+}
+	YY_BREAK
+case 48:
+YY_RULE_SETUP
+#line 86 "lexer.l"
 ECHO;
 	YY_BREAK
-#line 919 "lex.yy.c"
+#line 928 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1801,7 +1810,7 @@ int main()
 	return 0;
 	}
 #endif
-#line 82 "Lexer.l"
+#line 86 "lexer.l"
 
 
 int yywrap() {
