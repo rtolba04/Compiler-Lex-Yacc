@@ -98,12 +98,6 @@ block:
     LBRACE { enter_scope("block"); } 
     statement_list 
     RBRACE { exit_scope(); $$ = $3; }
-    // | LBRACE error RBRACE {
-    //     syntaxError("Malformed block statement");
-    //     exit_scope();
-    //     yyerrok;
-    //     $$ = 0;
-    // }
     ;
 
 
@@ -188,6 +182,16 @@ assignment_stmt:
                 DataType lhsType = getType($1);
                 DataType rhsType = $3; // Simplified - in real implementation track expression types
                 
+
+                    if (!areTypesCompatible(lhsType, rhsType)) {
+                    char error_msg[256];
+                    snprintf(error_msg, sizeof(error_msg),
+                            "Type mismatch in assignment to '%s': cannot assign %s to %s",
+                            $1,
+                            dataTypeToString(rhsType), 
+                            dataTypeToString(lhsType));
+                    semanticError(error_msg);
+                }
                 if (!update_symbol_initialized($1)) {
                     semanticError("Failed to update symbol initialization");
                 }

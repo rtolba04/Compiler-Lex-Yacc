@@ -1,16 +1,5 @@
 int main(){
-
 int x;
-const int y=9;
+x=true;
 
-bool z=true;
-
-if (z) {
-int h=8;
-}
-else {
-x=9;
-}
-
-h=7;
 }
