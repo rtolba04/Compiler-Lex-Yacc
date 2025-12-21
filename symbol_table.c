@@ -40,13 +40,13 @@ void enter_scope(const char *scope_name)
         new_scope->symbols[i] = NULL;
     }
     current_scope = new_scope;
-    printf("printing after entering scope:\n");
-    print_symbol_table();
+    // printf("printing after entering scope:\n");
+    // print_symbol_table();
 }
 
 void exit_scope()
 {
-    print_symbol_table();
+    // print_symbol_table();
     if (current_scope && current_scope->parent)
     {
         Scope *scope_to_delete = current_scope;
@@ -89,8 +89,8 @@ void exit_scope()
             free(scope_to_delete->name);
         free(scope_to_delete);
     }
-    printf("printing after exiting scope:\n");
-    print_symbol_table();
+    // printf("printing after exiting scope:\n");
+    // print_symbol_table();
 }
 
 SymbolEntry *insert_symbol(const char *name, DataType type, SymbolKind kind, int is_const)
