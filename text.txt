@@ -1,10 +1,8 @@
 int main(){
 
 
-int x;
-x=5;
-int y;
-y=x;
-int z;
-z=y+5;
+bool y=true;
+int x=5;
+i=7;
+
 }

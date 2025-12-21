@@ -132,6 +132,7 @@ declaration_stmt:
         SymbolEntry *entry = insert_symbol($3, $2, VARIABLE, 1);
         if (entry) {
             entry->is_initialized = 1;
+            emit("ASSIGN", $5.place, NULL, $3);
         } else {
             semanticError("Const variable declaration failed");
         }
@@ -141,6 +142,7 @@ declaration_stmt:
         SymbolEntry *entry = insert_symbol($2, $1, VARIABLE, 0);
         if (entry) {
             entry->is_initialized = 1;
+            emit("ASSIGN", $4.place, NULL, $2);
         } else {
             semanticError("Variable declaration failed");
         }
@@ -148,6 +150,7 @@ declaration_stmt:
     | BOOL_TYPE IDENTIFIER SEMICOLON
     {
         if (!insert_symbol($2, TYPE_BOOL, VARIABLE, 0)) {
+
             semanticError("Boolean variable declaration failed");
         }
     }
@@ -156,8 +159,10 @@ declaration_stmt:
         SymbolEntry *entry = insert_symbol($2, TYPE_BOOL, VARIABLE, 0);
         if (entry) {
             entry->is_initialized = 1;
+            emit("ASSIGN", $4.place, NULL, $2);
             printf("Boolean variable declared: %s\n", $2);
         } else {
+            
             semanticError("Boolean variable declaration failed");
         }
     }
@@ -198,15 +203,15 @@ assignment_stmt:
     {
         DataType lhsType = getType($1);
         DataType rhsType = $3.type;
-        printf("DEBUG: Assigning to %s, rhs.place = '%s', rhs.type = %d\n", 
-               $1, $3.place ? $3.place : "NULL", $3.type);
         if (!checkVariableDeclared($1)) {
-            // Error already reported
-        } 
-        else if (!checkConstReassignment($1)){
-            // Error already reported
-        } else if (!areTypesCompatible(lhsType, rhsType))  {
+            
+        } else {
+            // Check const reassignment
+            if (!checkConstReassignment($1)) {
+                // Error already reported
+            } else {
                 // Check type compatibility
+                if (!areTypesCompatible(lhsType, rhsType))  
                 {
                 char error_msg[256];
                 snprintf(error_msg, sizeof(error_msg),
@@ -216,18 +221,17 @@ assignment_stmt:
                         dataTypeToString(lhsType));
                 semanticError(error_msg);
                 }
-
-        } else {
-                if (!update_symbol_initialized($1)) {
+                else {
+                       if (!update_symbol_initialized($1)) {
                     semanticError("Failed to update symbol initialization");
                 }
-                else {
-                 
-                    printf("Assignment to '%s' executed successfully\n", $1);
+                else{
                     emit("ASSIGN", $3.place, NULL, $1);
                 }
+                }
+             
             }
-       
+        }    
     }
     
     | error ASSIGN expression SEMICOLON {
