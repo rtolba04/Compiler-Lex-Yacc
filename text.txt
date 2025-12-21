@@ -1,16 +1,16 @@
-int f(int L,float r){
-    int x=3;
-    int y =10;
-    int z = x + y;
-    return 0;
-}
-
 int main(){
 
-int z=10;
-int r=7;
-float c=10.5;
-int result;
-result=f(z);
+int x;
+const int y=9;
 
+bool z=true;
+
+if (z) {
+int h=8;
+}
+else {
+x=9;
+}
+
+h=7;
 }
