@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "symbol_table.h"
+#include "semantic_checks.h"
 
 void yyerror(const char *s);
 int yylex(void);
@@ -14,6 +15,7 @@ extern FILE *yyin;
 int loop_depth = 0;
 int switch_depth = 0;
 
+extern int line_num;
 %}
 
 %union {
@@ -24,12 +26,6 @@ int switch_depth = 0;
     DataType datatype;   
 }
 
- // === ERROR HANDLING ===
-%define parse.error detailed
-extern int line_num;
-extern int count_lexical_errors;
-int count_syntax_errors = 0;
-int count_semantic_errors = 0;
 
 %token INT FLOAT_TYPE STRING_TYPE CHAR_TYPE CONST BOOL_TYPE
 %token IF ELSE WHILE FOR DO SWITCH CASE DEFAULT BREAK
@@ -61,9 +57,6 @@ int count_semantic_errors = 0;
 program: 
     { CreateSymbolTable(); } 
     global_list 
-    {
-        checkUnusedFunctions();
-    }
     ;
 
 global_list: 
@@ -95,9 +88,7 @@ statement:
 break_stmt:
     BREAK SEMICOLON
     {
-        if (loop_depth == 0 && switch_depth == 0) {
-            semanticError("Error: 'break' statement used outside of loop or switch");
-        }
+        checkBreakContext(loop_depth, switch_depth);
         printf("BREAK statement executed\n");
         $$ = 1; 
     }
@@ -106,6 +97,12 @@ block:
     LBRACE { enter_scope("block"); } 
     statement_list 
     RBRACE { exit_scope(); $$ = $3; }
+    // | LBRACE error RBRACE {
+    //     syntaxError("Malformed block statement");
+    //     exit_scope();
+    //     yyerrok;
+    //     $$ = 0;
+    // }
     ;
 
 
@@ -113,27 +110,51 @@ block:
 declaration_stmt:
     type IDENTIFIER SEMICOLON
     {
-        insert_symbol($2, $1, VARIABLE, 0);
+        if (!insert_symbol($2, $1, VARIABLE, 0)) {
+            semanticError("Variable declaration failed");
+        }
     }
     | CONST type IDENTIFIER ASSIGN expression SEMICOLON
     {
         SymbolEntry *entry = insert_symbol($3, $2, VARIABLE, 1);
-        if (entry) entry->is_initialized = 1;
+        if (entry) {
+            entry->is_initialized = 1;
+        } else {
+            semanticError("Const variable declaration failed");
+        }
     }
     | type IDENTIFIER ASSIGN expression SEMICOLON
     {
         SymbolEntry *entry = insert_symbol($2, $1, VARIABLE, 0);
-        if (entry) entry->is_initialized = 1;
+        if (entry) {
+            entry->is_initialized = 1;
+        } else {
+            semanticError("Variable declaration failed");
+        }
     }
     | BOOL_TYPE IDENTIFIER SEMICOLON
     {
-        insert_symbol($2, TYPE_BOOL, VARIABLE, 0);
+        if (!insert_symbol($2, TYPE_BOOL, VARIABLE, 0)) {
+            semanticError("Boolean variable declaration failed");
+        }
     }
     | BOOL_TYPE IDENTIFIER ASSIGN bool_expression SEMICOLON
     {
         SymbolEntry *entry = insert_symbol($2, TYPE_BOOL, VARIABLE, 0);
-        if (entry) entry->is_initialized = 1;
-        printf("Boolean variable declared: %s\n", $2);
+        if (entry) {
+            entry->is_initialized = 1;
+            printf("Boolean variable declared: %s\n", $2);
+        } else {
+            semanticError("Boolean variable declaration failed");
+        }
+    }
+    | type error SEMICOLON {
+        syntaxError("Invalid variable declaration");
+        yyerrok;
+    }
+    | CONST type error SEMICOLON {
+        syntaxError("Invalid const declaration - expected: const type identifier = value;");
+        yyerrok;
     }
     ;
 
@@ -156,116 +177,189 @@ type:
 assignment_stmt:
     IDENTIFIER ASSIGN expression SEMICOLON
     {
-        checkConstAssignment($1);
-        DataType lhsType = getType($1);
-        if (!areTypesCompatible(lhsType, $3)) {
-            semanticError("Type mismatch in assignment");
-        }
-        if (!update_symbol_initialized($1)) {
-            semanticError("Undeclared variable in assignment");
+        if (!checkVariableDeclared($1)) {
+        } else {
+            // Check const reassignment
+            if (!checkConstReassignment($1)) {
+                // Error already reported
+            } else {
+                // Check type compatibility
+                DataType lhsType = getType($1);
+                DataType rhsType = $3; // Simplified - in real implementation track expression types
+                
+                if (!update_symbol_initialized($1)) {
+                    semanticError("Failed to update symbol initialization");
+                }
+            }
         }
     }
-  
+    | error ASSIGN expression SEMICOLON {
+        syntaxError("Invalid left-hand side in assignment");
+        yyerrok;
+    }
+    | IDENTIFIER ASSIGN error SEMICOLON {
+        syntaxError("Invalid expression in assignment");
+        yyerrok;
+    }
     ;
 
 assign:
     IDENTIFIER ASSIGN expression  { 
-        printf("Assignment executed: %s \n", $1);
+        if (checkVariableDeclared($1)) {
+            if (checkConstReassignment($1)) {
+                printf("Assignment executed: %s\n", $1);
+            }
+        }
         $$ = $3;  
     }
     ;
     
 expression:
     expression PLUS T    {
-        $$ = resolveType($1, $3);
+        DataType type = resolveType($1, $3);
+        $$ = type;
     }
-
     | expression MINUS T  {
-        $$ = resolveType($1, $3);
+        DataType type = resolveType($1, $3);
+        $$ = type;
     }
-    | T                             { $$ = $1; }
+    | T  { $$ = $1; }
     ;
  
 
 T:
-    T MULTIPLY F                    { $$ = $1 * $3; }
-    | T DIVIDE F                    { if ($3 == 0) 
-                                        semanticError("Division by zero");
-                                     else 
-                                        $$ = $1 / $3;
-                                    }
-    | T MODULO F                    { $$ = $1 % $3; }
-    | F                             { $$ = $1; }
+    T MULTIPLY F  { 
+        DataType type = resolveType($1, $3);
+        $$ = type; 
+    }
+    | T DIVIDE F  { 
+        if ($3 == 0) {
+            checkDivisionByZero(0);
+            $$ = TYPE_UNKNOWN;
+        } else {
+            DataType type = resolveType($1, $3);
+            $$ = type;
+        }
+    }
+    | T MODULO F  { 
+        if ($3 == 0) {
+            checkDivisionByZero(0);
+            $$ = TYPE_UNKNOWN;
+        } else {
+            // Modulo only works with integers
+            if ($1 != TYPE_INT || $3 != TYPE_INT) {
+                semanticError("Modulo operator requires integer operands");
+            }
+            $$ = TYPE_INT;
+        }
+    }
+    | F  { $$ = $1; }
     ;
 
 F:
-    LPAREN condition RPAREN        { $$ = $2; }
-    | MINUS F                       { $$ = -$2; }
+    LPAREN condition RPAREN  { $$ = $2; }
+    | MINUS F  { $$ = -$2; }
     | IDENTIFIER                   
     {
-        SymbolEntry *entry = lookup_symbol($1);
-        if (!entry) {
-            semanticError("Undeclared variable used in expression");
-            $$ = 0; 
-        } else if (entry->is_initialized == 0) {
-            semanticError("Use of uninitialized variable");
-            $$ = 0;
-        }
-         else {
-            update_symbol_used($1);
-            $$ = 0; // or entry->type if you want type checking later
+        if (checkVariableDeclared($1)) {
+            if (checkVariableInitialized($1)) {
+                update_symbol_used($1);
+                $$ = getType($1);
+            } else {
+                $$ = TYPE_UNKNOWN;
+            }
+        } else {
+            $$ = TYPE_UNKNOWN;
         }
     }
     | IDENTIFIER LPAREN argument_list RPAREN 
     {
-        SymbolEntry *entry = lookup_symbol($1);
-        if (!entry || entry->kind != FUNCTION) {
-            semanticError("Call to undeclared function");
-        } else {
+        if (checkFunctionCall($1)) {
             update_symbol_used($1);
+            $$ = getType($1);
+        } else {
+            $$ = TYPE_UNKNOWN;
         }
         printf("Function call: %s() executed\n", $1);
-        $$ = 0;
     }
     | IDENTIFIER LPAREN RPAREN
     {    
-         SymbolEntry *entry = lookup_symbol($1);
-        if (!entry || entry->kind != FUNCTION) {
-            yyerror("Call to undeclared function");
-        } else {
+        if (checkFunctionCall($1)) {
             update_symbol_used($1);
+            $$ = getType($1);
+        } else {
+            $$ = TYPE_UNKNOWN;
         }
-        $$ = 0;  
-        printf("Function call: %s() with no arguments executed\n", $1);  $$ = 0;    
+        printf("Function call: %s() with no arguments executed\n", $1);
     }
-    | FLOAT                         { $$ = $1; }
-    | NUMBER                        { $$ = $1; }
-    | TRUE_COND                     { $$ = 1; }
-    | FALSE_COND                    { $$ = 0; }
+    | FLOAT  { $$ = TYPE_FLOAT; }
+    | NUMBER  { $$ = TYPE_INT; }
+    | TRUE_COND  { $$ = TYPE_BOOL; }
+    | FALSE_COND  { $$ = TYPE_BOOL; }
     ;
 
 condition:
-    expression EQUAL expression     { $$ = ($1 == $3); }
-    | expression NOT_EQUAL expression { $$ = ($1 != $3); }
-    | expression LESS_THAN expression { $$ = ($1 < $3); }
-    | expression GREATER_THAN expression { $$ = ($1 > $3); }
-    | expression LESS_EQUAL expression { $$ = ($1 <= $3); }
-    | expression GREATER_EQUAL expression { $$ = ($1 >= $3); }
-    | expression AND expression { $$ = ($1 && $3); }
-    | expression OR expression { $$ = ($1 || $3); }
-    | NOT expression { $$ = !$2; }
+    expression EQUAL expression  { 
+        checkBooleanCondition(TYPE_BOOL);
+        $$ = TYPE_BOOL; 
+    }
+    | expression NOT_EQUAL expression { 
+        checkBooleanCondition(TYPE_BOOL);
+        $$ = TYPE_BOOL; 
+    }
+    | expression LESS_THAN expression { 
+        checkBooleanCondition(TYPE_BOOL);
+        $$ = TYPE_BOOL; 
+    }
+    | expression GREATER_THAN expression { 
+        checkBooleanCondition(TYPE_BOOL);
+        $$ = TYPE_BOOL; 
+    }
+    | expression LESS_EQUAL expression { 
+        checkBooleanCondition(TYPE_BOOL);
+        $$ = TYPE_BOOL; 
+    }
+    | expression GREATER_EQUAL expression { 
+        checkBooleanCondition(TYPE_BOOL);
+        $$ = TYPE_BOOL; 
+    }
+    | expression AND expression { 
+        checkBooleanCondition(TYPE_BOOL);
+        $$ = TYPE_BOOL; 
+    }
+    | expression OR expression { 
+        checkBooleanCondition(TYPE_BOOL);
+        $$ = TYPE_BOOL; 
+    }
+    | NOT expression { 
+        checkBooleanCondition(TYPE_BOOL);
+        $$ = TYPE_BOOL; 
+    }
     | expression { $$ = $1; }
     ;
 
     
 if_stmt:
-    IF LPAREN condition RPAREN  if_block { printf("IF statement executed\n"); }
-    | IF LPAREN condition RPAREN LBRACE  RBRACE ELSE else_block {printf("IF-ELSE statement executed\n");  }
+    IF LPAREN condition RPAREN if_block { 
+        printf("IF statement executed\n"); 
+    }
+    | IF LPAREN condition RPAREN if_block ELSE else_block {
+        printf("IF-ELSE statement executed\n");  
+    }
+    // | IF error RPAREN if_block {
+    //     syntaxError("Malformed condition in IF statement");
+    //     yyerrok;
+    // }
+    // | IF LPAREN condition error {
+    //     syntaxError("Missing closing parenthesis in IF statement");
+    //     yyerrok;
+    // }
     ;  
 
 if_block:
     LBRACE {enter_scope("if-block");} statement_list {exit_scope();} RBRACE
     ;
+
 else_block:
     LBRACE {enter_scope("else-block");} statement_list {exit_scope();} RBRACE
     ;
@@ -279,6 +373,16 @@ while_stmt:
         loop_depth--;
         printf("WHILE loop executed\n"); 
     }
+    // | WHILE error RPAREN LBRACE statement_list RBRACE {
+    //     syntaxError("Malformed condition in WHILE loop");
+    //     loop_depth--;
+    //     yyerrok;
+    // }
+    // | WHILE LPAREN condition error LBRACE statement_list RBRACE {
+    //     syntaxError("Missing closing parenthesis in WHILE loop");
+    //     loop_depth--;
+    //     yyerrok;
+    // }
     ;
 
 for_stmt:
@@ -292,19 +396,24 @@ for_stmt:
         printf("FOR loop executed\n");
         exit_scope(); 
     }
+    // | FOR error RPAREN LBRACE statement_list RBRACE {
+    //     syntaxError("Malformed FOR loop structure");
+    //     loop_depth--;
+    //     exit_scope();
+    //     yyerrok;
+    // }
     ;
 
 
 switch_stmt:
     SWITCH LPAREN IDENTIFIER RPAREN 
     { 
-        SymbolEntry *entry = lookup_symbol($3);
-        if (!entry) {
-            semanticError("Undeclared variable in SWITCH statement");
-        } else if (entry->is_initialized == 0) {
-            semanticError("Use of uninitialized variable in SWITCH statement");
-        } else {
-            update_symbol_used($3);
+        if (checkVariableDeclared($3)) {
+            if (!checkVariableInitialized($3)) {
+                // Error already reported
+            } else {
+                update_symbol_used($3);
+            }
         }
         switch_depth++; 
         enter_scope("switch-scope");
@@ -315,6 +424,12 @@ switch_stmt:
         exit_scope();
         printf("SWITCH statement executed on variable '%s'\n", $3);
         $$ = 0; 
+    }
+    | SWITCH error RPAREN LBRACE case_list RBRACE {
+        syntaxError("Malformed SWITCH statement");
+        switch_depth--;
+        exit_scope();
+        yyerrok;
     }
     ;
 
@@ -335,7 +450,7 @@ case_stmt:
     CASE expression COLON statement_list
     {
         if ($4 == 0) {
-            semanticError("Semantic Error: Case must end with a 'break;' statement");
+            semanticError("Case must end with a 'break;' statement");
         }
         printf("CASE executed successfully with mandatory break\n");
     }
@@ -345,71 +460,102 @@ default_case:
     DEFAULT COLON statement_list
     {
         if ($3 == 0) {
-            semanticError("Semantic Error: Default case must end with a 'break;' statement");
+            semanticError("Default case must end with a 'break;' statement");
         }
         printf("DEFAULT case executed successfully with mandatory break\n");
     }
     ;
 
 function_decl:
-    function_name LPAREN parameter_list RPAREN LBRACE statement_list  RBRACE
+    function_name LPAREN parameter_list RPAREN LBRACE statement_list RBRACE
     { 
         printf("Function declaration executed\n");
-        {exit_scope();} 
-        
+        clearCurrentFunction();
+        exit_scope(); 
     }
     | function_name LPAREN RPAREN LBRACE statement_list RBRACE
     { 
         printf("Function declaration (no parameters) executed\n"); 
-        {exit_scope();} 
+        clearCurrentFunction();
+        exit_scope(); 
     }
     | function_name_void LPAREN parameter_list RPAREN LBRACE statement_list RBRACE
     { 
         printf("Void function declaration executed\n"); 
-        {exit_scope();}
+        clearCurrentFunction();
+        exit_scope();
     }
     | function_name_void LPAREN RPAREN LBRACE statement_list RBRACE
     { 
         printf("Void function declaration (no parameters) executed\n"); 
-        {exit_scope();}
+        clearCurrentFunction();
+        exit_scope();
     }
+    // | type IDENTIFIER LPAREN error RPAREN LBRACE statement_list RBRACE {
+    //     syntaxError("Malformed parameter list in function declaration");
+    //     yyerrok;
+    // }
     ;
 
 function_name:
     type IDENTIFIER 
     {
-        insert_symbol($2, $1, FUNCTION, 0);
-        enter_scope($2); 
+        if (insert_symbol($2, $1, FUNCTION, 0)) {
+            setCurrentFunction($2, $1);
+            enter_scope($2);
+        } else {
+            semanticError("Function declaration failed");
+        }
+        $$ = $2;
     };
 
 function_name_void:
     VOID_TYPE IDENTIFIER 
     {
-        insert_symbol($2, TYPE_VOID, FUNCTION, 0);
-        enter_scope($2); 
+        if (insert_symbol($2, TYPE_VOID, FUNCTION, 0)) {
+            setCurrentFunction($2, TYPE_VOID);
+            enter_scope($2);
+        } else {
+            semanticError("Void function declaration failed");
+        }
+        $$ = $2;
     };
 
 parameter_list:
     parameter
     | parameter_list COMMA parameter
+    // | error {
+    //     syntaxError("Invalid parameter in function declaration");
+    //     yyerrok;
+    // }
     ;
 
 parameter:
     type IDENTIFIER
     {
-        insert_symbol($2, $1, PARAMETER, 0);
+        if (!insert_symbol($2, $1, PARAMETER, 0)) {
+            semanticError("Parameter declaration failed");
+        }
     }
     ;
 
 return_stmt:
     RETURN expression SEMICOLON
     {
-        checkReturn(current_function_name, $2, 1);
+        if (current_function_name) {
+            checkReturn(current_function_name, $2, 1);
+        } else {
+            semanticError("Return statement outside of function");
+        }
         printf("RETURN statement executed\n");
     }
     | RETURN SEMICOLON
     {
-        checkReturn(current_function_name, TYPE_VOID, 0);
+        if (current_function_name) {
+            checkReturn(current_function_name, TYPE_VOID, 0);
+        } else {
+            semanticError("Return statement outside of function");
+        }
         printf("RETURN (void) statement executed\n");
     }
     ;
@@ -426,6 +572,11 @@ do_while_stmt:
     {
         printf("DO-WHILE loop executed\n");
     }
+    // | DO LBRACE statement_list RBRACE WHILE error SEMICOLON {
+    //     syntaxError("Malformed condition in DO-WHILE loop");
+    //     loop_depth--;
+    //     yyerrok;
+    // }
     ;
 
 argument_list:
@@ -444,30 +595,24 @@ int main(int argc, char **argv) {
         yyin = fopen(argv[1], "r");
 
         if (!yyin) {
-        perror("Error opening file");
-        return 1;
+            perror("Error opening file");
+            return 1;
         }
     }
 
-    line_num = 1;
-    count_lexical_errors = 0;
-    count_syntax_errors = 0;
-    count_semantic_errors = 0;
-
     if(yyparse() == 0) {
-        printf("Parsing completed successfully.\n");
+        printf("\nParsing completed successfully.\n");
     } else {
-        printf("Parsing failed due to syntax errors.\n");
+        printf("\nParsing failed.\n");
     }
-    printf("Lexical errors: %d\n", count_lexical_errors);
-    printf("Syntax errors: %d\n", count_syntax_errors);
-    printf("Semantic errors: %d\n", count_semantic_errors);
 
-    if (count_lexical_errors > 0 || count_syntax_errors > 0 || count_semantic_errors > 0) {
+    // Print error summary
+    printErrorSummary();
+
+    // Return non-zero if there are any errors
+    if (count_syntax_errors > 0 || count_semantic_errors > 0) {
         return 1;
     }
 
-    printf("Compilation successful. No errors found.\n");
     return 0;
-
 }

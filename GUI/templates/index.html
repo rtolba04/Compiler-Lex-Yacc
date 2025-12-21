@@ -2,19 +2,39 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>MyCompiler Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <title>Compiler GUI</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <div class="navbar"> MyCompiler</div>
 
-    <div class="container">
-        <h2>Upload your source file</h2>
-        <form method="POST" action="/compile" enctype="multipart/form-data">
-            <input type="file" name="sourcefile" required>
-            <input type="submit" value="Run Compiler">
-        </form>
-    </div>
+<div class="container">
+    <header>
+        <h1>Custom Compiler</h1>
+        <p>Local compiler execution interface</p>
+    </header>
+
+    <main>
+        <section class="editor">
+            <div class="header-bar">
+                <span>Source Code</span>
+                <button id="runBtn">Run</button>
+            </div>
+            <textarea id="codeInput" placeholder="Write your code here..."></textarea>
+        </section>
+
+        <section class="output">
+            <div class="header-bar">
+                <span>Output</span>
+            </div>
+            <pre id="outputBox"></pre>
+        </section>
+    </main>
+
+    <footer>
+        Local C++ Compiler UI
+    </footer>
+</div>
+
+<script src="/static/script.js"></script>
 </body>
 </html>

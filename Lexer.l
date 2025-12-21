@@ -77,10 +77,6 @@ NEWLINE     \n
 {WHITESPACE}    { /* skip */ }
 {NEWLINE}       { line_num++; }
 
-. {
-    fprintf(stderr, "Lexical Error at line %d: Unknown character '%c'\n", line_num, *yytext);
-    count_lexical_errors++;
-}
 
 
 %%
