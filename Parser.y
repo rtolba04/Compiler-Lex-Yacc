@@ -1,7 +1,20 @@
 %code requires {
 #include "symbol_table.h"
 #include "semantic_checks.h"
+#include "quad.h"
+
+typedef struct {
+    char *Lstart;
+    char *Lend;
+} WhileLabels;
+
+typedef struct {
+    int type;      // TYPE_BOOL, TYPE_INT, ...
+    char *place;   // temp name or variable name
+} Attr;
 }
+
+
 
 %{
 #include <stdio.h>
@@ -24,6 +37,11 @@ extern int line_num;
     char *string;     
     char charval;  
     DataType datatype;   
+    WhileLabels *wlbl;
+    Attr attr;
+
+
+   
 }
 
 
@@ -47,11 +65,11 @@ extern int line_num;
 
 
 
+%type <attr> expression condition T F assign argument_list bool_expression
 
-%type <integer> expression T F condition assign bool_expression statement statement_list break_stmt block switch_stmt
+%type <integer>   statement statement_list break_stmt block switch_stmt
 %type <datatype> type
 %type <string> function_name function_name_void 
-%type <datatype> argument_list
 %start program
 %%
 
@@ -154,12 +172,18 @@ declaration_stmt:
     ;
 
 
+
 bool_expression:
-    TRUE_COND            { $$ = 1; }
-    | FALSE_COND         { $$ = 0; }
+    TRUE_COND            { 
+        $$.place = strdup("1");
+        $$.type = TYPE_BOOL;
+     }
+    | FALSE_COND         {
+        $$.place = strdup("0");
+        $$.type = TYPE_BOOL;
+    }
     | LPAREN condition RPAREN      { $$ = $2; }
     ;
-
 
 
 type:
@@ -172,32 +196,40 @@ type:
 assignment_stmt:
     IDENTIFIER ASSIGN expression SEMICOLON
     {
+        DataType lhsType = getType($1);
+        DataType rhsType = $3.type;
+        printf("DEBUG: Assigning to %s, rhs.place = '%s', rhs.type = %d\n", 
+               $1, $3.place ? $3.place : "NULL", $3.type);
         if (!checkVariableDeclared($1)) {
-        } else {
-            // Check const reassignment
-            if (!checkConstReassignment($1)) {
-                // Error already reported
-            } else {
+            // Error already reported
+        } 
+        else if (!checkConstReassignment($1)){
+            // Error already reported
+        } else if (!areTypesCompatible(lhsType, rhsType))  {
                 // Check type compatibility
-                DataType lhsType = getType($1);
-                DataType rhsType = $3; // Simplified - in real implementation track expression types
-                
-
-                    if (!areTypesCompatible(lhsType, rhsType)) {
-                    char error_msg[256];
-                    snprintf(error_msg, sizeof(error_msg),
-                            "Type mismatch in assignment to '%s': cannot assign %s to %s",
-                            $1,
-                            dataTypeToString(rhsType), 
-                            dataTypeToString(lhsType));
-                    semanticError(error_msg);
+                {
+                char error_msg[256];
+                snprintf(error_msg, sizeof(error_msg),
+                        "Type mismatch in assignment to '%s': cannot assign %s to %s",
+                        $1,
+                        dataTypeToString(rhsType), 
+                        dataTypeToString(lhsType));
+                semanticError(error_msg);
                 }
+
+        } else {
                 if (!update_symbol_initialized($1)) {
                     semanticError("Failed to update symbol initialization");
                 }
+                else {
+                 
+                    printf("Assignment to '%s' executed successfully\n", $1);
+                    emit("ASSIGN", $3.place, NULL, $1);
+                }
             }
-        }
+       
     }
+    
     | error ASSIGN expression SEMICOLON {
         syntaxError("Invalid left-hand side in assignment");
         yyerrok;
@@ -220,126 +252,218 @@ assign:
     ;
     
 expression:
-    expression PLUS T    {
-        DataType type = resolveType($1, $3);
-        $$ = type;
+    expression PLUS T {
+        
+        $$.type = resolveType($1.type, $3.type);
+
+        char *t = newTemp();
+        emit("ADD", $1.place, $3.place, t);
+        $$.place = t;
     }
-    | expression MINUS T  {
-        DataType type = resolveType($1, $3);
-        $$ = type;
-    }
-    | T  { $$ = $1; }
-    ;
+
+    | expression MINUS T {
+            $$.type = resolveType($1.type, $3.type);
+
+            char *t = newTemp();
+            emit("SUB", $1.place, $3.place, t);
+            $$.place = t;
+        }
+
+    | T {
+            $$ = $1;
+        }
+;
  
 
 T:
-    T MULTIPLY F  { 
-        DataType type = resolveType($1, $3);
-        $$ = type; 
+    T MULTIPLY F {
+        $$.type = resolveType($1.type, $3.type);
+
+        char *t = newTemp();
+        emit("MUL", $1.place, $3.place, t);
+        $$.place = t;
     }
-    | T DIVIDE F  { 
-        if ($3 == 0) {
-            checkDivisionByZero(0);
-            $$ = TYPE_UNKNOWN;
-        } else {
-            DataType type = resolveType($1, $3);
-            $$ = type;
-        }
+    | T DIVIDE F {
+    if ($3.type == TYPE_INT && $3.place==0) {
+        checkDivisionByZero(0);
+        $$.type = TYPE_UNKNOWN;
+        $$.place = NULL;
+    } else {
+        $$.type = resolveType($1.type, $3.type);
+        char *t = newTemp();
+        emit("DIV", $1.place, $3.place, t);
+        $$.place = t;
     }
-    | T MODULO F  { 
-        if ($3 == 0) {
-            checkDivisionByZero(0);
-            $$ = TYPE_UNKNOWN;
-        } else {
-            // Modulo only works with integers
-            if ($1 != TYPE_INT || $3 != TYPE_INT) {
-                semanticError("Modulo operator requires integer operands");
-            }
-            $$ = TYPE_INT;
-        }
     }
-    | F  { $$ = $1; }
-    ;
+    | T MODULO F {
+    if ($1.type != TYPE_INT || $3.type != TYPE_INT) {
+        semanticError("Modulo operator requires integer operands");
+        $$.type = TYPE_UNKNOWN;
+        $$.place = NULL;
+    } else {
+        $$.type = TYPE_INT;
+
+        char *t = newTemp();
+        emit("MOD", $1.place, $3.place, t);
+        $$.place = t;
+    }
+    }
+    | F {
+        $$ = $1;
+    }
+;
+
 
 F:
     LPAREN condition RPAREN  { $$ = $2; }
-    | MINUS F  { $$ = -$2; }
-    | IDENTIFIER                   
-    {
+    | MINUS F {
+        if ($2.type != TYPE_INT && $2.type != TYPE_FLOAT) {
+            semanticError("Unary minus requires numeric operand");
+            $$.type = TYPE_UNKNOWN;
+            $$.place = NULL;
+        } else {
+            $$.type = $2.type;
+
+            char *t = newTemp();
+            emit("NEG", $2.place, NULL, t);
+            $$.place = t;
+        }
+    }                   
+    | IDENTIFIER {
         if (checkVariableDeclared($1)) {
             if (checkVariableInitialized($1)) {
                 update_symbol_used($1);
-                $$ = getType($1);
+                $$.type = getType($1);
+                $$.place = $1;  
+               
             } else {
-                $$ = TYPE_UNKNOWN;
+                $$.type = TYPE_UNKNOWN;
+                $$.place = NULL;
             }
         } else {
-            $$ = TYPE_UNKNOWN;
+            $$.type = TYPE_UNKNOWN;
+            $$.place = NULL;
         }
     }
-    | IDENTIFIER LPAREN argument_list RPAREN 
-    {
+      | IDENTIFIER LPAREN argument_list RPAREN {
         if (checkFunctionCall($1, argument_types, argument_count)) {
             update_symbol_used($1);
-            $$ = getType($1);
+            $$.type = getType($1); //this will get the return type of the function since it is what is stored in the symbol table 
+
+            char *t = newTemp();
+            emit("CALL", $1, NULL, t);
+            $$.place = t;
         } else {
-            $$ = TYPE_UNKNOWN;
+            $$.type = TYPE_UNKNOWN;
+            $$.place = NULL;
         }
         argument_count = 0;
-        printf("Function call: %s() executed\n", $1);
     }
-    | IDENTIFIER LPAREN RPAREN
-    {    
+    | IDENTIFIER LPAREN RPAREN {
         if (checkFunctionCall($1, NULL, 0)) {
             update_symbol_used($1);
-            $$ = getType($1);
+            $$.type = getType($1);
+
+            char *t = newTemp();
+            emit("CALL", $1, NULL, t);
+            $$.place = t;
         } else {
-            $$ = TYPE_UNKNOWN;
+            $$.type = TYPE_UNKNOWN;
+            $$.place = NULL;
         }
-        printf("Function call: %s() with no arguments executed\n", $1);
     }
-    | FLOAT  { $$ = TYPE_FLOAT; }
-    | NUMBER  { $$ = TYPE_INT; }
-    | TRUE_COND  { $$ = TYPE_BOOL; }
-    | FALSE_COND  { $$ = TYPE_BOOL; }
-    ;
+    | FLOAT {
+    $$.type = TYPE_FLOAT;
+    char buf[64];
+    snprintf(buf, sizeof(buf), "%f", $1);  
+    $$.place = strdup(buf); 
+    }
+
+    | NUMBER {
+        char buf[32];
+          snprintf(buf, sizeof(buf), "%d", $1);
+          $$.place = strdup(buf); 
+        $$.type = TYPE_INT;
+        
+    }
+
+    | TRUE_COND {
+        $$.type = TYPE_BOOL;
+        $$.place = strdup("1");
+    }
+
+    | FALSE_COND {
+        $$.type = TYPE_BOOL;
+        $$.place = strdup("0");
+    }
+;
+
+   
 
 condition:
     expression EQUAL expression  { 
         checkBooleanCondition(TYPE_BOOL);
-        $$ = TYPE_BOOL; 
+        $$.type = TYPE_BOOL;
+        char *t = newTemp();
+        emit("EQ", $1.place, $3.place, t);
+        $$.place = t;
     }
     | expression NOT_EQUAL expression { 
         checkBooleanCondition(TYPE_BOOL);
-        $$ = TYPE_BOOL; 
+        $$.type = TYPE_BOOL;
+        char *t = newTemp();
+        emit("NE", $1.place, $3.place, t);
+        $$.place = t; 
     }
     | expression LESS_THAN expression { 
         checkBooleanCondition(TYPE_BOOL);
-        $$ = TYPE_BOOL; 
+        $$.type = TYPE_BOOL;
+        char *t = newTemp();
+        emit("LT", $1.place, $3.place, t);
+        $$.place = t; 
     }
     | expression GREATER_THAN expression { 
         checkBooleanCondition(TYPE_BOOL);
-        $$ = TYPE_BOOL; 
+        $$.type = TYPE_BOOL;
+        char *t = newTemp();
+        emit("GT", $1.place, $3.place, t);
+        $$.place = t; 
     }
     | expression LESS_EQUAL expression { 
         checkBooleanCondition(TYPE_BOOL);
-        $$ = TYPE_BOOL; 
+        $$.type = TYPE_BOOL;
+        char *t = newTemp();
+        emit("LE", $1.place, $3.place, t);
+        $$.place = t; 
     }
     | expression GREATER_EQUAL expression { 
         checkBooleanCondition(TYPE_BOOL);
-        $$ = TYPE_BOOL; 
+        $$.type = TYPE_BOOL;
+        char *t = newTemp();
+        emit("GE", $1.place, $3.place, t);
+        $$.place = t; 
     }
     | expression AND expression { 
         checkBooleanCondition(TYPE_BOOL);
-        $$ = TYPE_BOOL; 
+        $$.type = TYPE_BOOL;
+        char *t = newTemp();
+        emit("AND", $1.place, $3.place, t);
+        $$.place = t;; 
     }
     | expression OR expression { 
         checkBooleanCondition(TYPE_BOOL);
-        $$ = TYPE_BOOL; 
+        $$.type = TYPE_BOOL;
+        char *t = newTemp();
+        emit("OR", $1.place, $3.place, t);
+        $$.place = t; 
     }
     | NOT expression { 
         checkBooleanCondition(TYPE_BOOL);
-        $$ = TYPE_BOOL; 
+        $$.type = TYPE_BOOL;
+        char *t = newTemp();
+        emit("NOT", $2.place, NULL, t);
+        $$.place = t;
+        
     }
     | expression { $$ = $1; }
     ;
@@ -542,7 +666,7 @@ return_stmt:
     RETURN expression SEMICOLON
     {
         if (current_function_name) {
-            checkReturn(current_function_name, $2, 1);
+            checkReturn(current_function_name, $2.type, 1);
         } else {
             semanticError("Return statement outside of function");
         }
@@ -582,12 +706,12 @@ argument_list:
     expression
     {
         argument_count = 1;
-        argument_types[0] = $1;  
+        argument_types[0] = $1.type;  
         $$ = $1;  // Pass through the type
     }
     | argument_list COMMA expression
     {
-        argument_types[argument_count] = $3;  
+        argument_types[argument_count] = $3.type;  
         argument_count++;
         $$ = $3;  // Pass through the type (or you could pass the first type)
     }
@@ -610,6 +734,7 @@ int main(int argc, char **argv) {
     }
 
     if(yyparse() == 0) {
+        print_quads();
         printf("\nParsing completed successfully.\n");
     } else {
         printf("\nParsing failed.\n");

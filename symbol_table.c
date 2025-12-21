@@ -118,6 +118,12 @@ SymbolEntry *insert_symbol(const char *name, DataType type, SymbolKind kind, int
     new_entry->is_initialized = 0;
     new_entry->is_used = 0;
 
+    if (kind == PARAMETER)
+    {
+        // For parameters, mark as initialized
+        new_entry->is_initialized = 1;
+    }
+
     // inserting in a linked list
     new_entry->next = current_scope->symbols[index];
     current_scope->symbols[index] = new_entry;

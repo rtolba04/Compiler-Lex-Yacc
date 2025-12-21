@@ -39,11 +39,22 @@
 
 #include "symbol_table.h"
 #include "semantic_checks.h"
+#include "quad.h"
+
+typedef struct {
+    char *Lstart;
+    char *Lend;
+} WhileLabels;
+
+typedef struct {
+    int type;      // TYPE_BOOL, TYPE_INT, ...
+    char *place;   // temp name or variable name
+} Attr;
 
 
 
 /* Line 1676 of yacc.c  */
-#line 47 "Parser.tab.h"
+#line 58 "Parser.tab.h"
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -105,18 +116,23 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 21 "Parser.y"
+#line 34 "Parser.y"
 
     int integer;      
     float floatval;     
     char *string;     
     char charval;  
     DataType datatype;   
+    WhileLabels *wlbl;
+    Attr attr;
+
+
+   
 
 
 
 /* Line 1676 of yacc.c  */
-#line 120 "Parser.tab.h"
+#line 136 "Parser.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
