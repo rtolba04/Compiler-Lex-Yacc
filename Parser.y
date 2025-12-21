@@ -1,5 +1,6 @@
 %code requires {
 #include "symbol_table.h"
+#include "semantic_checks.h"
 }
 
 %{
@@ -22,6 +23,13 @@ int switch_depth = 0;
     char charval;  
     DataType datatype;   
 }
+
+ // === ERROR HANDLING ===
+%define parse.error detailed
+extern int line_num;
+extern int count_lexical_errors;
+int count_syntax_errors = 0;
+int count_semantic_errors = 0;
 
 %token INT FLOAT_TYPE STRING_TYPE CHAR_TYPE CONST BOOL_TYPE
 %token IF ELSE WHILE FOR DO SWITCH CASE DEFAULT BREAK
@@ -53,6 +61,9 @@ int switch_depth = 0;
 program: 
     { CreateSymbolTable(); } 
     global_list 
+    {
+        checkUnusedFunctions();
+    }
     ;
 
 global_list: 
@@ -85,7 +96,7 @@ break_stmt:
     BREAK SEMICOLON
     {
         if (loop_depth == 0 && switch_depth == 0) {
-            yyerror("Error: 'break' statement used outside of loop or switch");
+            semanticError("Error: 'break' statement used outside of loop or switch");
         }
         printf("BREAK statement executed\n");
         $$ = 1; 
@@ -145,8 +156,13 @@ type:
 assignment_stmt:
     IDENTIFIER ASSIGN expression SEMICOLON
     {
+        checkConstAssignment($1);
+        DataType lhsType = getType($1);
+        if (!areTypesCompatible(lhsType, $3)) {
+            semanticError("Type mismatch in assignment");
+        }
         if (!update_symbol_initialized($1)) {
-            yyerror("Undeclared variable in assignment");
+            semanticError("Undeclared variable in assignment");
         }
     }
   
@@ -160,8 +176,13 @@ assign:
     ;
     
 expression:
-    expression PLUS T                { $$ = $1 + $3; }
-    | expression MINUS T             { $$ = $1 - $3; }
+    expression PLUS T    {
+        $$ = resolveType($1, $3);
+    }
+
+    | expression MINUS T  {
+        $$ = resolveType($1, $3);
+    }
     | T                             { $$ = $1; }
     ;
  
@@ -169,7 +190,7 @@ expression:
 T:
     T MULTIPLY F                    { $$ = $1 * $3; }
     | T DIVIDE F                    { if ($3 == 0) 
-                                        yyerror("Division by zero");
+                                        semanticError("Division by zero");
                                      else 
                                         $$ = $1 / $3;
                                     }
@@ -184,10 +205,10 @@ F:
     {
         SymbolEntry *entry = lookup_symbol($1);
         if (!entry) {
-            yyerror("Undeclared variable used in expression");
+            semanticError("Undeclared variable used in expression");
             $$ = 0; 
         } else if (entry->is_initialized == 0) {
-            yyerror("Use of uninitialized variable");
+            semanticError("Use of uninitialized variable");
             $$ = 0;
         }
          else {
@@ -199,7 +220,7 @@ F:
     {
         SymbolEntry *entry = lookup_symbol($1);
         if (!entry || entry->kind != FUNCTION) {
-            yyerror("Call to undeclared function");
+            semanticError("Call to undeclared function");
         } else {
             update_symbol_used($1);
         }
@@ -236,7 +257,7 @@ condition:
     | expression { $$ = $1; }
     ;
 
-    ;
+    
 if_stmt:
     IF LPAREN condition RPAREN  if_block { printf("IF statement executed\n"); }
     | IF LPAREN condition RPAREN LBRACE  RBRACE ELSE else_block {printf("IF-ELSE statement executed\n");  }
@@ -279,9 +300,9 @@ switch_stmt:
     { 
         SymbolEntry *entry = lookup_symbol($3);
         if (!entry) {
-            yyerror("Undeclared variable in SWITCH statement");
+            semanticError("Undeclared variable in SWITCH statement");
         } else if (entry->is_initialized == 0) {
-            yyerror("Use of uninitialized variable in SWITCH statement");
+            semanticError("Use of uninitialized variable in SWITCH statement");
         } else {
             update_symbol_used($3);
         }
@@ -314,7 +335,7 @@ case_stmt:
     CASE expression COLON statement_list
     {
         if ($4 == 0) {
-            yyerror("Semantic Error: Case must end with a 'break;' statement");
+            semanticError("Semantic Error: Case must end with a 'break;' statement");
         }
         printf("CASE executed successfully with mandatory break\n");
     }
@@ -324,7 +345,7 @@ default_case:
     DEFAULT COLON statement_list
     {
         if ($3 == 0) {
-            yyerror("Semantic Error: Default case must end with a 'break;' statement");
+            semanticError("Semantic Error: Default case must end with a 'break;' statement");
         }
         printf("DEFAULT case executed successfully with mandatory break\n");
     }
@@ -383,10 +404,12 @@ parameter:
 return_stmt:
     RETURN expression SEMICOLON
     {
+        checkReturn(current_function_name, $2, 1);
         printf("RETURN statement executed\n");
     }
     | RETURN SEMICOLON
     {
+        checkReturn(current_function_name, TYPE_VOID, 0);
         printf("RETURN (void) statement executed\n");
     }
     ;
@@ -412,7 +435,8 @@ argument_list:
 %%
 
 void yyerror(const char *s) {
-    fprintf(stderr, "Error: %s\n", s);
+    fprintf(stderr, "Syntax Error at line %d: %s\n", line_num, s);
+    count_syntax_errors++;
 }
 
 int main(int argc, char **argv) {
@@ -424,9 +448,26 @@ int main(int argc, char **argv) {
         return 1;
         }
     }
+
+    line_num = 1;
+    count_lexical_errors = 0;
+    count_syntax_errors = 0;
+    count_semantic_errors = 0;
+
     if(yyparse() == 0) {
         printf("Parsing completed successfully.\n");
     } else {
-        printf("Parsing failed.\n");
+        printf("Parsing failed due to syntax errors.\n");
     }
+    printf("Lexical errors: %d\n", count_lexical_errors);
+    printf("Syntax errors: %d\n", count_syntax_errors);
+    printf("Semantic errors: %d\n", count_semantic_errors);
+
+    if (count_lexical_errors > 0 || count_syntax_errors > 0 || count_semantic_errors > 0) {
+        return 1;
+    }
+
+    printf("Compilation successful. No errors found.\n");
+    return 0;
+
 }

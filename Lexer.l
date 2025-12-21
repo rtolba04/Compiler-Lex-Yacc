@@ -5,6 +5,7 @@
 #include <string.h>
 
 int line_num = 1;
+int count_lexical_errors = 0;
 %}
 
 /* Regular Definitions */
@@ -76,7 +77,10 @@ NEWLINE     \n
 {WHITESPACE}    { /* skip */ }
 {NEWLINE}       { line_num++; }
 
-
+. {
+    fprintf(stderr, "Lexical Error at line %d: Unknown character '%c'\n", line_num, *yytext);
+    count_lexical_errors++;
+}
 
 
 %%
