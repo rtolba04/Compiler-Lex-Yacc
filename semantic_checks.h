@@ -31,7 +31,7 @@ int checkVariableDeclared(const char *name);
 void setCurrentFunction(const char *name, DataType return_type);
 void clearCurrentFunction();
 int checkReturn(const char *func_name, DataType return_type, int has_value);
-int checkFunctionCall(const char *func_name);
+int checkFunctionCall(const char *func_name, DataType *arg_types, int arg_count);
 
 // Boolean condition checks
 int checkBooleanCondition(DataType condition_type);
@@ -44,5 +44,8 @@ int checkBreakContext(int loop_depth, int switch_depth);
 
 // Print error summary
 void printErrorSummary();
+
+// Utility function to convert DataType to string
+const char *dataTypeToString(DataType type);
 
 #endif

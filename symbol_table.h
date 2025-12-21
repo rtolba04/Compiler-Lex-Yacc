@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #define HASH_SIZE 211
+#define MAX_ARGS 10
 
 typedef enum
 {
@@ -24,6 +25,9 @@ typedef enum
     PARAMETER
 } SymbolKind;
 
+extern DataType argument_types[MAX_ARGS];
+extern int argument_count;
+
 typedef struct SymbolEntry
 {
     char *name;
@@ -32,7 +36,10 @@ typedef struct SymbolEntry
     int is_const;
     int is_initialized;
     int is_used;
-
+    // these were added on purpose to check function parameters later
+    int param_count;
+    DataType *param_types;
+    char **param_names;
     struct SymbolEntry *next; //  (hash collisions)
 } SymbolEntry;
 
@@ -59,4 +66,7 @@ unsigned int hash_function(const char *str);
 
 void print_symbol_table_recursive(Scope *scope);
 void print_symbol_table();
+
+SymbolEntry *lookup_in_scope(Scope *scope, const char *name);
+void save_function_parameters(SymbolEntry *func_entry, Scope *func_scope);
 #endif

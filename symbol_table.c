@@ -1,5 +1,7 @@
 #include "symbol_table.h"
 static Scope *current_scope = NULL;
+DataType argument_types[MAX_ARGS];
+int argument_count = 0;
 
 unsigned int hash_function(const char *str)
 {
@@ -39,14 +41,26 @@ void enter_scope(const char *scope_name)
     }
     current_scope = new_scope;
     printf("printing after entering scope:\n");
-    // print_symbol_table();
+    print_symbol_table();
 }
 
 void exit_scope()
 {
+    print_symbol_table();
     if (current_scope && current_scope->parent)
     {
         Scope *scope_to_delete = current_scope;
+        if (scope_to_delete->name)
+        {
+            SymbolEntry *func_entry = lookup_in_scope(scope_to_delete->parent,
+                                                      scope_to_delete->name);
+
+            if (func_entry && func_entry->kind == FUNCTION)
+            {
+                // Save parameter information from this scope in the parent scope
+                save_function_parameters(func_entry, scope_to_delete);
+            }
+        }
 
         // Check for unused variables before exiting
         for (int i = 0; i < HASH_SIZE; i++)
@@ -75,6 +89,8 @@ void exit_scope()
             free(scope_to_delete->name);
         free(scope_to_delete);
     }
+    printf("printing after exiting scope:\n");
+    print_symbol_table();
 }
 
 SymbolEntry *insert_symbol(const char *name, DataType type, SymbolKind kind, int is_const)
@@ -184,13 +200,32 @@ void print_symbol_table_recursive(Scope *scope)
         SymbolEntry *entry = scope->symbols[i];
         while (entry)
         {
-            printf("Name: %-10s | Type: %-10d | Kind: %-10d | Const: %d | Init: %d | Used: %d\n",
+            printf("Name: %-10s | Type: %-10d | Kind: %-10d | Const: %d | Init: %d | Used: %d",
                    entry->name,
                    entry->type,
                    entry->kind,
                    entry->is_const,
                    entry->is_initialized,
                    entry->is_used);
+
+            // Print function parameter information if it's a function
+            if (entry->kind == FUNCTION && entry->param_count > 0)
+            {
+                printf(" | Parameters: [");
+                for (int j = 0; j < entry->param_count; j++)
+                {
+                    if (j > 0)
+                        printf(", ");
+                    printf("%s:%d", entry->param_names[j], entry->param_types[j]);
+                }
+                printf("]");
+            }
+            else if (entry->kind == FUNCTION && entry->param_count == 0)
+            {
+                printf(" | Parameters: []");
+            }
+
+            printf("\n");
             entry = entry->next;
         }
     }
@@ -206,4 +241,62 @@ void print_symbol_table_recursive(Scope *scope)
 void print_symbol_table()
 {
     print_symbol_table_recursive(current_scope);
+}
+
+SymbolEntry *lookup_in_scope(Scope *scope, const char *name)
+{
+    if (!scope)
+        return NULL;
+
+    unsigned int index = hash_function(name);
+    SymbolEntry *entry = scope->symbols[index];
+
+    while (entry)
+    {
+        if (strcmp(entry->name, name) == 0)
+        {
+            return entry;
+        }
+        entry = entry->next;
+    }
+    return NULL;
+}
+
+void save_function_parameters(SymbolEntry *func_entry, Scope *func_scope)
+{
+    // Count parameters
+    int param_count = 0;
+    for (int i = 0; i < HASH_SIZE; i++)
+    {
+        SymbolEntry *entry = func_scope->symbols[i];
+        while (entry)
+        {
+            if (entry->kind == PARAMETER)
+            {
+                param_count++;
+            }
+            entry = entry->next;
+        }
+    }
+
+    // Allocate arrays
+    func_entry->param_count = param_count;
+    func_entry->param_types = malloc(param_count * sizeof(DataType));
+    func_entry->param_names = malloc(param_count * sizeof(char *));
+
+    int idx = 0;
+    for (int i = 0; i < HASH_SIZE; i++)
+    {
+        SymbolEntry *entry = func_scope->symbols[i];
+        while (entry)
+        {
+            if (entry->kind == PARAMETER)
+            {
+                func_entry->param_types[idx] = entry->type;
+                func_entry->param_names[idx] = strdup(entry->name);
+                idx++;
+            }
+            entry = entry->next;
+        }
+    }
 }

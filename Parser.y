@@ -50,7 +50,8 @@ extern int line_num;
 
 %type <integer> expression T F condition assign bool_expression statement statement_list break_stmt block switch_stmt
 %type <datatype> type
-%type <string> function_name function_name_void
+%type <string> function_name function_name_void 
+%type <datatype> argument_list
 %start program
 %%
 
@@ -274,17 +275,18 @@ F:
     }
     | IDENTIFIER LPAREN argument_list RPAREN 
     {
-        if (checkFunctionCall($1)) {
+        if (checkFunctionCall($1, argument_types, argument_count)) {
             update_symbol_used($1);
             $$ = getType($1);
         } else {
             $$ = TYPE_UNKNOWN;
         }
+        argument_count = 0;
         printf("Function call: %s() executed\n", $1);
     }
     | IDENTIFIER LPAREN RPAREN
     {    
-        if (checkFunctionCall($1)) {
+        if (checkFunctionCall($1, NULL, 0)) {
             update_symbol_used($1);
             $$ = getType($1);
         } else {
@@ -491,10 +493,6 @@ function_decl:
         clearCurrentFunction();
         exit_scope();
     }
-    // | type IDENTIFIER LPAREN error RPAREN LBRACE statement_list RBRACE {
-    //     syntaxError("Malformed parameter list in function declaration");
-    //     yyerrok;
-    // }
     ;
 
 function_name:
@@ -524,10 +522,7 @@ function_name_void:
 parameter_list:
     parameter
     | parameter_list COMMA parameter
-    // | error {
-    //     syntaxError("Invalid parameter in function declaration");
-    //     yyerrok;
-    // }
+ 
     ;
 
 parameter:
@@ -581,7 +576,17 @@ do_while_stmt:
 
 argument_list:
     expression
+    {
+        argument_count = 1;
+        argument_types[0] = $1;  
+        $$ = $1;  // Pass through the type
+    }
     | argument_list COMMA expression
+    {
+        argument_types[argument_count] = $3;  
+        argument_count++;
+        $$ = $3;  // Pass through the type (or you could pass the first type)
+    }
     ;
 %%
 
