@@ -65,6 +65,7 @@ int areTypesCompatible(DataType lhs, DataType rhs)
     // Unknown types are incompatible
     if (lhs == TYPE_UNKNOWN || rhs == TYPE_UNKNOWN)
     {
+        
         return 0;
     }
 
@@ -110,10 +111,10 @@ DataType getType(const char *identifier)
 
     if (!entry)
     {
-        char error_msg[256];
-        snprintf(error_msg, sizeof(error_msg),
-                 "Undeclared variable '%s'", identifier);
-        semanticError(error_msg);
+        // char error_msg[256];
+        // snprintf(error_msg, sizeof(error_msg),
+        //          "Undeclared variable '%s'", identifier);
+        // semanticError(error_msg);
         return TYPE_UNKNOWN;
     }
 

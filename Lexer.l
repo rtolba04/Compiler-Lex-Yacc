@@ -15,6 +15,8 @@ ID          {LETTER}({LETTER}|{DIGIT})*
 /* Identifiers can only start with letters or underscore but may contain digits afterwards*/
 INTEGER     {DIGIT}+
 FLOAT       {DIGIT}+\.{DIGIT}+
+STRING      \"(\\.|[^"\\])*\"
+CHAR        \'(\\.|[^'\\])\'
 
 WHITESPACE  [ \t]+
 NEWLINE     \n
@@ -71,11 +73,12 @@ NEWLINE     \n
 {ID}            { yylval.string = strdup(yytext); return IDENTIFIER; }
 {INTEGER}       { yylval.integer = atoi(yytext); return NUMBER; }
 {FLOAT}         { yylval.floatval = atof(yytext); return FLOAT; }
-
-
+{STRING}        { yylval.string = strdup(yytext); return STRING_LITERAL;  }
+{CHAR}          { yylval.string = strdup(yytext); return CHAR_LITERAL; }
 
 {WHITESPACE}    { /* skip */ }
 {NEWLINE}       { line_num++; }
+
 
 
 

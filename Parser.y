@@ -59,15 +59,15 @@ extern int line_num;
 
 
 /* Value-returning tokens */
-%token <string> IDENTIFIER 
+%token <string> IDENTIFIER STRING_LITERAL
 %token <integer> NUMBER 
 %token <floatval> FLOAT 
-
+%token <charval> CHAR_LITERAL
 
 
 %type <attr> expression condition T F assign argument_list bool_expression
 
-%type <integer>   statement statement_list break_stmt block switch_stmt
+%type <integer>   statement statement_list break_stmt block switch_stmt 
 %type <datatype> type
 %type <string> function_name function_name_void 
 %start program
@@ -99,7 +99,7 @@ statement:
     | switch_stmt { $$ = 0; }
     | function_decl { $$ = 0; }
     | do_while_stmt { $$ = 0; }
-    | return_stmt { $$ = 0; }
+    | return_stmt { $$ = 2; }
     | break_stmt { $$ = $1; }
     | block    { $$ = $1; }
     ;
@@ -390,7 +390,16 @@ F:
         $$.type = TYPE_INT;
         
     }
-
+    | STRING_LITERAL {
+        $$.type = TYPE_STRING;
+        $$.place = strdup($1);
+    }
+    | CHAR_LITERAL {
+        $$.type = TYPE_CHAR;
+        char buf[4];
+        snprintf(buf, sizeof(buf), "'%c'", $1);
+        $$.place = strdup(buf);
+    }
     | TRUE_COND {
         $$.type = TYPE_BOOL;
         $$.place = strdup("1");
@@ -406,67 +415,125 @@ F:
 
 condition:
     expression EQUAL expression  { 
-        checkBooleanCondition(TYPE_BOOL);
+        if (!areTypesCompatible($1.type, $3.type)) {
+            semanticError("Type mismatch in equality comparison");
+            $$.type = TYPE_UNKNOWN;
+            $$.place = NULL;
+        }
+        else {
         $$.type = TYPE_BOOL;
         char *t = newTemp();
         emit("EQ", $1.place, $3.place, t);
         $$.place = t;
+        }
     }
     | expression NOT_EQUAL expression { 
-        checkBooleanCondition(TYPE_BOOL);
+        if (!areTypesCompatible($1.type, $3.type)) {
+            semanticError("Type mismatch in inequality comparison");
+            $$.type = TYPE_UNKNOWN;
+            $$.place = NULL;
+        }
+        else {
         $$.type = TYPE_BOOL;
         char *t = newTemp();
         emit("NE", $1.place, $3.place, t);
         $$.place = t; 
+        }
     }
     | expression LESS_THAN expression { 
-        checkBooleanCondition(TYPE_BOOL);
+        if (!(($1.type == TYPE_INT || $1.type == TYPE_FLOAT) &&
+              ($3.type == TYPE_INT || $3.type == TYPE_FLOAT))) {
+            semanticError("Type mismatch in less-than comparison");
+            $$.type = TYPE_UNKNOWN;
+            $$.place = NULL;
+        }
+        else {
         $$.type = TYPE_BOOL;
         char *t = newTemp();
         emit("LT", $1.place, $3.place, t);
         $$.place = t; 
+        }
     }
     | expression GREATER_THAN expression { 
-        checkBooleanCondition(TYPE_BOOL);
+        if (!(($1.type == TYPE_INT || $1.type == TYPE_FLOAT) &&
+              ($3.type == TYPE_INT || $3.type == TYPE_FLOAT))) {
+            semanticError("Type mismatch in greater-than comparison");
+            $$.type = TYPE_UNKNOWN;
+            $$.place = NULL;
+        }
+        else {
         $$.type = TYPE_BOOL;
         char *t = newTemp();
         emit("GT", $1.place, $3.place, t);
         $$.place = t; 
+        }
     }
     | expression LESS_EQUAL expression { 
-        checkBooleanCondition(TYPE_BOOL);
+        if (!(($1.type == TYPE_INT || $1.type == TYPE_FLOAT) &&
+              ($3.type == TYPE_INT || $3.type == TYPE_FLOAT))) {
+            semanticError("Type mismatch in less-than-or-equal comparison");
+            $$.type = TYPE_UNKNOWN;
+            $$.place = NULL;
+        }
+        else {
         $$.type = TYPE_BOOL;
         char *t = newTemp();
         emit("LE", $1.place, $3.place, t);
         $$.place = t; 
+        }
     }
     | expression GREATER_EQUAL expression { 
-        checkBooleanCondition(TYPE_BOOL);
+        if (!(($1.type == TYPE_INT || $1.type == TYPE_FLOAT) &&
+              ($3.type == TYPE_INT || $3.type == TYPE_FLOAT))) {
+            semanticError("Type mismatch in greater-than-or-equal comparison");
+            $$.type = TYPE_UNKNOWN;
+            $$.place = NULL;
+        }
+        else {
         $$.type = TYPE_BOOL;
         char *t = newTemp();
         emit("GE", $1.place, $3.place, t);
         $$.place = t; 
+        }
     }
     | expression AND expression { 
-        checkBooleanCondition(TYPE_BOOL);
+        if ($1.type != TYPE_BOOL || $3.type != TYPE_BOOL) {
+            semanticError("Logical AND requires boolean operands");
+            $$.type = TYPE_UNKNOWN;
+            $$.place = NULL;
+        }
+        else {
         $$.type = TYPE_BOOL;
         char *t = newTemp();
         emit("AND", $1.place, $3.place, t);
-        $$.place = t;; 
+        $$.place = t;
+        } 
     }
     | expression OR expression { 
-        checkBooleanCondition(TYPE_BOOL);
+        if ($1.type != TYPE_BOOL || $3.type != TYPE_BOOL) {
+            semanticError("Logical OR requires boolean operands");
+            $$.type = TYPE_UNKNOWN;
+            $$.place = NULL;
+        }
+        else {
         $$.type = TYPE_BOOL;
         char *t = newTemp();
         emit("OR", $1.place, $3.place, t);
-        $$.place = t; 
+        $$.place = t;
+        } 
     }
     | NOT expression { 
-        checkBooleanCondition(TYPE_BOOL);
+        if ($2.type != TYPE_BOOL) {
+            semanticError("Logical NOT requires a boolean operand");
+            $$.type = TYPE_UNKNOWN;
+            $$.place = NULL;
+        }
+        else {
         $$.type = TYPE_BOOL;
         char *t = newTemp();
         emit("NOT", $2.place, NULL, t);
         $$.place = t;
+        }
         
     }
     | expression { $$ = $1; }
@@ -480,14 +547,14 @@ if_stmt:
     | IF LPAREN condition RPAREN if_block ELSE else_block {
         printf("IF-ELSE statement executed\n");  
     }
-    // | IF error RPAREN if_block {
-    //     syntaxError("Malformed condition in IF statement");
-    //     yyerrok;
-    // }
-    // | IF LPAREN condition error {
-    //     syntaxError("Missing closing parenthesis in IF statement");
-    //     yyerrok;
-    // }
+    | IF error RPAREN if_block {
+        syntaxError("Malformed condition in IF statement");
+        yyerrok;
+    }
+    | IF LPAREN condition error {
+        syntaxError("Missing closing parenthesis in IF statement");
+        yyerrok;
+    }
     ;  
 
 if_block:
@@ -507,16 +574,16 @@ while_stmt:
         loop_depth--;
         printf("WHILE loop executed\n"); 
     }
-    // | WHILE error RPAREN LBRACE statement_list RBRACE {
-    //     syntaxError("Malformed condition in WHILE loop");
-    //     loop_depth--;
-    //     yyerrok;
-    // }
-    // | WHILE LPAREN condition error LBRACE statement_list RBRACE {
-    //     syntaxError("Missing closing parenthesis in WHILE loop");
-    //     loop_depth--;
-    //     yyerrok;
-    // }
+    | WHILE error RPAREN LBRACE statement_list RBRACE {
+        syntaxError("Malformed condition in WHILE loop");
+        loop_depth--;
+        yyerrok;
+    }
+    | WHILE LPAREN condition error LBRACE statement_list RBRACE {
+        syntaxError("Missing closing parenthesis in WHILE loop");
+        loop_depth--;
+        yyerrok;
+    }
     ;
 
 for_stmt:
@@ -530,12 +597,12 @@ for_stmt:
         printf("FOR loop executed\n");
         exit_scope(); 
     }
-    // | FOR error RPAREN LBRACE statement_list RBRACE {
-    //     syntaxError("Malformed FOR loop structure");
-    //     loop_depth--;
-    //     exit_scope();
-    //     yyerrok;
-    // }
+    | FOR error RPAREN LBRACE statement_list RBRACE {
+        syntaxError("Malformed FOR loop structure");
+        loop_depth--;
+        exit_scope();
+        yyerrok;
+    }
     ;
 
 
@@ -583,7 +650,7 @@ case_list:
 case_stmt:
     CASE expression COLON statement_list
     {
-        if ($4 == 0) {
+        if ($4 != 1) {
             semanticError("Case must end with a 'break;' statement");
         }
         printf("CASE executed successfully with mandatory break\n");
@@ -593,7 +660,7 @@ case_stmt:
 default_case:
     DEFAULT COLON statement_list
     {
-        if ($3 == 0) {
+        if ($3 != 1) {
             semanticError("Default case must end with a 'break;' statement");
         }
         printf("DEFAULT case executed successfully with mandatory break\n");
@@ -601,14 +668,20 @@ default_case:
     ;
 
 function_decl:
-    function_name LPAREN parameter_list RPAREN LBRACE statement_list RBRACE
+    function_name LPAREN parameter_list RPAREN LBRACE statement_list RBRACE 
     { 
+        if($6 != 2) {
+            semanticError("Function must end with a return statement");
+        }
         printf("Function declaration executed\n");
         clearCurrentFunction();
         exit_scope(); 
     }
     | function_name LPAREN RPAREN LBRACE statement_list RBRACE
     { 
+        if($5 != 2) {
+            semanticError("Function must end with a return statement");
+        }
         printf("Function declaration (no parameters) executed\n"); 
         clearCurrentFunction();
         exit_scope(); 
@@ -675,6 +748,7 @@ return_stmt:
             semanticError("Return statement outside of function");
         }
         printf("RETURN statement executed\n");
+
     }
     | RETURN SEMICOLON
     {
@@ -689,21 +763,32 @@ return_stmt:
 
 
 do_while_stmt:
-    DO 
-    { loop_depth++; }
-    LBRACE {enter_scope("do-while");} 
-    statement_list 
-    {exit_scope();} RBRACE
-    { loop_depth--; }  
-    WHILE LPAREN condition RPAREN SEMICOLON
+    DO do_block WHILE LPAREN condition RPAREN SEMICOLON
     {
         printf("DO-WHILE loop executed\n");
     }
-    // | DO LBRACE statement_list RBRACE WHILE error SEMICOLON {
-    //     syntaxError("Malformed condition in DO-WHILE loop");
-    //     loop_depth--;
-    //     yyerrok;
-    // }
+    | DO do_block WHILE error SEMICOLON
+    {
+        syntaxError("Malformed condition in DO-WHILE loop");
+        yyerrok;
+    }
+    | DO do_block WHILE LPAREN error RPAREN SEMICOLON
+    {
+        syntaxError("Malformed condition in DO-WHILE loop");
+        yyerrok;
+    }
+    | DO do_block WHILE LPAREN condition error
+    {
+        syntaxError("Missing closing parenthesis in DO-WHILE loop");
+        yyerrok;
+    }
+    ;
+
+/* Helper nonterminal to avoid duplicated actions and reduce conflicts */
+
+
+do_block:
+    { loop_depth++; } LBRACE { enter_scope("do-while"); } statement_list { exit_scope(); } RBRACE { loop_depth--; }
     ;
 
 argument_list:
