@@ -249,9 +249,10 @@ assign:
         if (checkVariableDeclared($1)) {
             if (checkConstReassignment($1)) {
                 printf("Assignment executed: %s\n", $1);
+                emit("ASSIGN", $3.place, NULL, $1);
+
             }
-        }
-        $$ = $3;  
+        } 
     }
     ;
     
@@ -353,9 +354,10 @@ F:
         if (checkFunctionCall($1, argument_types, argument_count)) {
             update_symbol_used($1);
             $$.type = getType($1); //this will get the return type of the function since it is what is stored in the symbol table 
-
+            char buf[32];
+            snprintf(buf, sizeof(buf), "%d", argument_count);
             char *t = newTemp();
-            emit("CALL", $1, NULL, t);
+            emit("CALL", $1, strdup(buf), t);
             $$.place = t;
         } else {
             $$.type = TYPE_UNKNOWN;
@@ -369,7 +371,7 @@ F:
             $$.type = getType($1);
 
             char *t = newTemp();
-            emit("CALL", $1, NULL, t);
+            emit("CALL", $1, "0", t);
             $$.place = t;
         } else {
             $$.type = TYPE_UNKNOWN;
