@@ -100,14 +100,23 @@ void flush_delayed(void)
     }
     dqcount = 0;
 }
-
 void print_quads(void)
 {
-    printf("\n===== QUADRUPLES =====\n");
+    FILE *fp = fopen("quad.txt", "w");
+    if (fp == NULL)
+    {
+        perror("Error opening quad.txt");
+        return;
+    }
+
+    fprintf(fp, "===== QUADRUPLES =====\n");
     for (int i = 0; i < qcount; i++)
     {
-        printf("%3d: (%s, %s, %s, %s)\n", i,
-               Q[i].op, Q[i].a1, Q[i].a2, Q[i].res);
+        fprintf(fp, "%3d: (%s, %s, %s, %s)\n", i,
+                Q[i].op, Q[i].a1, Q[i].a2, Q[i].res);
     }
-    printf("======================\n\n");
+    fprintf(fp, "======================\n");
+
+    fclose(fp);
+    printf("Quadruples written to quad.txt\n");
 }

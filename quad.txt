@@ -1,0 +1,16 @@
+===== QUADRUPLES =====
+  0: (FUNC_BEGIN, main, -, -)
+  1: (ASSIGN, 0, -, x)
+  2: (ASSIGN, 0, -, z)
+  3: (LABEL, -, -, L2)
+  4: (ADD, x, 1, t1)
+  5: (ASSIGN, t1, -, x)
+  6: (GT, x, 4, t2)
+  7: (JMPF, t2, -, L3)
+  8: (JMP, -, -, L2)
+  9: (LABEL, -, -, L3)
+ 10: (RETURN, 1, -, -)
+ 11: (JMP, -, -, L1)
+ 12: (LABEL, -, -, L1)
+ 13: (FUNC_END, main, -, -)
+======================
