@@ -29,6 +29,9 @@ int loop_depth = 0;
 int switch_depth = 0;
 
 extern int line_num;
+
+static char *current_func_name = NULL;
+static char *current_func_end  = NULL;
 %}
 
 %union {
@@ -688,15 +691,25 @@ default_case:
 function_decl:
     function_name LPAREN parameter_list RPAREN LBRACE statement_list RBRACE 
     { 
+
         if($6 != 2) {
             semanticError("Function must end with a return statement");
         }
+        emit("LABEL", NULL, NULL, current_func_end);
+        emit("FUNC_END", current_func_name, NULL, NULL);
+
+        current_func_end  = NULL;
+        current_func_name = NULL;
         printf("Function declaration executed\n");
         clearCurrentFunction();
         exit_scope(); 
     }
     | function_name LPAREN RPAREN LBRACE statement_list RBRACE
     { 
+        emit("LABEL", NULL, NULL, current_func_end);
+        emit("FUNC_END", current_func_name, NULL, NULL);
+        current_func_end  = NULL;
+        current_func_name = NULL;
         if($5 != 2) {
             semanticError("Function must end with a return statement");
         }
@@ -706,12 +719,20 @@ function_decl:
     }
     | function_name_void LPAREN parameter_list RPAREN LBRACE statement_list RBRACE
     { 
+        emit("LABEL", NULL, NULL, current_func_end);
+        emit("FUNC_END", current_func_name, NULL, NULL);
+        current_func_end  = NULL;
+        current_func_name = NULL;
         printf("Void function declaration executed\n"); 
         clearCurrentFunction();
         exit_scope();
     }
     | function_name_void LPAREN RPAREN LBRACE statement_list RBRACE
     { 
+        emit("LABEL", NULL, NULL, current_func_end);
+        emit("FUNC_END", current_func_name, NULL, NULL);
+        current_func_end  = NULL;
+        current_func_name = NULL;
         printf("Void function declaration (no parameters) executed\n"); 
         clearCurrentFunction();
         exit_scope();
@@ -724,6 +745,10 @@ function_name:
         if (insert_symbol($2, $1, FUNCTION, 0)) {
             setCurrentFunction($2, $1);
             enter_scope($2);
+            current_func_name = $2;
+            current_func_end  = newLabel();
+
+            emit("FUNC_BEGIN", current_func_name, NULL, NULL);
         } else {
             semanticError("Function declaration failed");
         }
@@ -736,6 +761,9 @@ function_name_void:
         if (insert_symbol($2, TYPE_VOID, FUNCTION, 0)) {
             setCurrentFunction($2, TYPE_VOID);
             enter_scope($2);
+            current_func_name = $2;
+            current_func_end  = newLabel();
+            emit("FUNC_BEGIN", current_func_name, NULL, NULL);
         } else {
             semanticError("Void function declaration failed");
         }
@@ -761,17 +789,31 @@ return_stmt:
     RETURN expression SEMICOLON
     {
         if (current_function_name) {
-            checkReturn(current_function_name, $2.type, 1);
+            if(checkReturn(current_function_name, $2.type, 1)) {
+                // Return type matches
+                emit("RETURN", $2.place, NULL, NULL);              // simplest
+
+                // jump to common function end
+                emit("JMP", NULL, NULL, current_func_end);
+                
+            }
         } else {
             semanticError("Return statement outside of function");
         }
+      
         printf("RETURN statement executed\n");
-
     }
     | RETURN SEMICOLON
     {
         if (current_function_name) {
-            checkReturn(current_function_name, TYPE_VOID, 0);
+            if(checkReturn(current_function_name, TYPE_VOID, 0)) {
+                // Return type matches
+                emit("RETURN", NULL, NULL, NULL);              // simplest
+
+                // jump to common function end
+                emit("JMP", NULL, NULL, current_func_end);
+                
+            }
         } else {
             semanticError("Return statement outside of function");
         }
@@ -833,13 +875,15 @@ argument_list:
     expression
     {
         argument_count = 1;
-        argument_types[0] = $1.type;  
+        argument_types[0] = $1.type; 
+        emit("PARAM", $1.place, NULL, NULL); 
         $$ = $1;  // Pass through the type
     }
     | argument_list COMMA expression
     {
         argument_types[argument_count] = $3.type;  
         argument_count++;
+        emit("PARAM", $3.place, NULL, NULL); 
         $$ = $3;  // Pass through the type (or you could pass the first type)
     }
     ;

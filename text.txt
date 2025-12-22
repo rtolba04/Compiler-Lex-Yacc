@@ -1,13 +1,14 @@
-int main(){
-int x=3;
-int z;
-z=0;
+int findSum(int x, int y){
 
+int sum=x+y;
+if(sum<4){
+ return 4;
+}
+return sum;
 
-do {
-z=4;
-x=x-1;
-} while (x==);
+}
 
-return 1;
+void empty(){
+string name="saja";
+return;
 }
