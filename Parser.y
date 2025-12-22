@@ -799,6 +799,12 @@ do_while_stmt:
       
         printf("DO-WHILE loop executed\n");
     }
+    | DO error SEMICOLON
+    {
+        syntaxError("Malformed DO-WHILE loop");
+        loop_depth = 0; // Reset in case it was incremented
+        yyerrok;
+    }
     /* | DO do_block WHILE error SEMICOLON
     {
         syntaxError("Malformed condition in DO-WHILE loop");

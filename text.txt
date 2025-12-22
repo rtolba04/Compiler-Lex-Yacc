@@ -7,7 +7,7 @@ z=0;
 do {
 z=4;
 x=x-1;
-} while (x>0);
+} while (x==);
 
 return 1;
 }
