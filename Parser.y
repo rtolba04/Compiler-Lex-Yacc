@@ -28,6 +28,7 @@ extern FILE *yyin;
 int loop_depth = 0;
 int switch_depth = 0;
 
+
 extern int line_num;
 
 static char *current_func_name = NULL;
@@ -610,10 +611,34 @@ while_stmt:
 for_stmt:
     FOR 
     { enter_scope("for-loop"); }
-    LPAREN declaration_stmt condition SEMICOLON assign RPAREN 
+    LPAREN declaration_stmt
+    {
+      $<string>$ = newLabel();  // Save start label
+      emit("LABEL", NULL, NULL, $<string>$);
+    } 
+    condition 
+    {
+        $<string>$ = newLabel();  // Save end label
+        emit("JMPF", $6.place, NULL, $<string>$);  
+    }
+    SEMICOLON 
+    {
+        delay_emit = 1;   // STOP assign from emitting
+    }
+    assign
+    {
+        delay_emit = 0;   // Resume normal emission
+    }
+    RPAREN 
     { loop_depth++; }
     LBRACE statement_list RBRACE  
     { 
+        flush_delayed();  // Emit any delayed quads
+        emit("JMP", NULL, NULL, $<string>5);
+        
+        // Place end label
+        emit("LABEL", NULL, NULL, $<string>7);
+
         loop_depth--;
         printf("FOR loop executed\n");
         exit_scope(); 

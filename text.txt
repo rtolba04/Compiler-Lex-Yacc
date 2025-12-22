@@ -1,14 +1,8 @@
-int findSum(int x, int y){
-
-int sum=x+y;
-if(sum<4){
- return 4;
+int main(){
+ int sum=0;
+  for(int i=0;i<3;i=i+1){
+   sum= sum +i;
 }
-return sum;
-
-}
-
-void empty(){
-string name="saja";
-return;
+return 1;
+  
 }
