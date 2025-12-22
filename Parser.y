@@ -33,6 +33,10 @@ extern int line_num;
 
 static char *current_func_name = NULL;
 static char *current_func_end  = NULL;
+
+static char *current_switch_var = NULL;
+static char *current_switch_end = NULL;
+static char *current_break_target = NULL;
 %}
 
 %union {
@@ -116,6 +120,7 @@ break_stmt:
     {
         checkBreakContext(loop_depth, switch_depth);
         printf("BREAK statement executed\n");
+        emit("JMP", NULL, NULL, current_switch_end);
         $$ = 1; 
     }
     | BREAK error {
@@ -124,6 +129,7 @@ break_stmt:
         $$ = 1; 
     }
     ;
+
 block: 
     LBRACE { enter_scope("block"); } 
     statement_list 
@@ -720,9 +726,17 @@ switch_stmt:
         }
         switch_depth++; 
         enter_scope("switch-scope");
+        current_switch_var = $3;
+        current_switch_end = newLabel();
     }
     LBRACE case_list switch_optional_default RBRACE
     {
+        emit("LABEL", NULL, NULL, current_switch_end);
+        
+        // Clear globals
+        current_switch_var = NULL;
+        current_switch_end = NULL;
+        current_break_target = NULL;
         switch_depth--;
         exit_scope();
         printf("SWITCH statement executed on variable '%s'\n", $3);
@@ -750,11 +764,26 @@ case_list:
     ;
 
 case_stmt:
-    CASE expression COLON statement_list
+    CASE expression
     {
-        if ($4 != 1) {
+        // Create and emit label for next case
+        char *Lnext = newLabel();
+        
+        // Compare switch variable with case value
+        char *t = newTemp();
+        emit("EQ", current_switch_var, $2.place, t);
+        emit("JMPF", t, NULL, Lnext);
+        
+        // Store Lnext to emit later
+        $<string>$ = Lnext;
+    }
+    COLON statement_list
+    {
+
+        if ($5 != 1) {
             semanticError("Case must end with a 'break;' statement");
         }
+        emit("LABEL", NULL, NULL, $<string>3);
         printf("CASE executed successfully with mandatory break\n");
     }
     ;

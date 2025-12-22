@@ -1,24 +1,23 @@
-int z=0;
-
 int main(){
- int sum=0;
- int x;
+int x;
+x=0;
 
- if(z==sum){
-  x=5;
-  return 0;
- }
-else{
-x=7;
-return x;
+
+
+int z;
+switch(x)
+{
+case 1:
+z=9;
+break;
+case 2:
+z=8;
+break;
+default:
+z=10;
+
 }
-
-
-bool y;
-y=(x>sum);
-
 return 1;
 
 
-  
 }
