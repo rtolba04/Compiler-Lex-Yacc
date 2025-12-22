@@ -1,15 +1,22 @@
+int findSum(int x, int y){
+
+int sum=x+y;
+return sum;
+}
+
 int main(){
-bool y = true;
-int x =  6 + (9 * 0);
-char z = 'u';
-  while ('k' == z){
-     x = x+1;
-     
-  }
-    if ( 'k' == z){
-     x = x+1
-     
-  }
-  
-   return 0;
+
+
+bool y=true;
+string x="why";
+x="new";
+char f;
+f='c';
+char letter='s';
+int z=9;
+int L=8;
+findSum(z,L);
+return 1;
+
+
 }

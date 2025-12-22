@@ -10,7 +10,6 @@ int count_syntax_errors = 0;
 char *current_function_name = NULL;
 DataType current_function_return_type = TYPE_VOID;
 
-// Add this function at the top of semantic_checks.c
 const char *dataTypeToString(DataType type)
 {
     switch (type)
@@ -65,7 +64,7 @@ int areTypesCompatible(DataType lhs, DataType rhs)
     // Unknown types are incompatible
     if (lhs == TYPE_UNKNOWN || rhs == TYPE_UNKNOWN)
     {
-        
+
         return 0;
     }
 

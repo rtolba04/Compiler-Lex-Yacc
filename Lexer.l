@@ -74,7 +74,7 @@ NEWLINE     \n
 {INTEGER}       { yylval.integer = atoi(yytext); return NUMBER; }
 {FLOAT}         { yylval.floatval = atof(yytext); return FLOAT; }
 {STRING}        { yylval.string = strdup(yytext); return STRING_LITERAL;  }
-{CHAR}          { yylval.string = strdup(yytext); return CHAR_LITERAL; }
+{CHAR}          { yylval.charval = yytext[1]; return CHAR_LITERAL; }
 
 {WHITESPACE}    { /* skip */ }
 {NEWLINE}       { line_num++; }

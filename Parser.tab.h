@@ -104,8 +104,10 @@ typedef struct {
      COMMA = 297,
      COLON = 298,
      IDENTIFIER = 299,
-     NUMBER = 300,
-     FLOAT = 301
+     STRING_LITERAL = 300,
+     NUMBER = 301,
+     FLOAT = 302,
+     CHAR_LITERAL = 303
    };
 #endif
 
@@ -132,7 +134,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 136 "Parser.tab.h"
+#line 138 "Parser.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

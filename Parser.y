@@ -396,7 +396,7 @@ F:
     }
     | CHAR_LITERAL {
         $$.type = TYPE_CHAR;
-        char buf[4];
+        char buf[10];
         snprintf(buf, sizeof(buf), "'%c'", $1);
         $$.place = strdup(buf);
     }
