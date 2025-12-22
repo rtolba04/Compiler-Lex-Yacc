@@ -70,6 +70,7 @@ extern int line_num;
 %type <integer>   statement statement_list break_stmt block switch_stmt 
 %type <datatype> type
 %type <wlbl> M_while
+%type <wlbl> M_do
 %type <string> function_name function_name_void 
 %start program
 %%
@@ -778,13 +779,27 @@ return_stmt:
     }
     ;
 
+M_do:
+    /* empty */
+    {
+        WhileLabels *p = (WhileLabels*)calloc(1, sizeof(WhileLabels));
+        p->Lstart = newLabel();
+        p->Lend   = newLabel();
+        emit("LABEL", NULL, NULL, p->Lstart);
+        $$ = p;
+    }
+;
 
 do_while_stmt:
-    DO do_block WHILE LPAREN condition RPAREN SEMICOLON
+    DO M_do do_block WHILE LPAREN condition RPAREN SEMICOLON
     {
+        emit("JMPF", $6.place, NULL, $2->Lend);
+        emit("JMP",  NULL, NULL, $2->Lstart);
+        emit("LABEL", NULL, NULL, $2->Lend);
+      
         printf("DO-WHILE loop executed\n");
     }
-    | DO do_block WHILE error SEMICOLON
+    /* | DO do_block WHILE error SEMICOLON
     {
         syntaxError("Malformed condition in DO-WHILE loop");
         yyerrok;
@@ -798,7 +813,7 @@ do_while_stmt:
     {
         syntaxError("Missing closing parenthesis in DO-WHILE loop");
         yyerrok;
-    }
+    } */
     ;
 
 /* Helper nonterminal to avoid duplicated actions and reduce conflicts */

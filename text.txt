@@ -2,8 +2,12 @@ int main(){
 int x=3;
 int z;
 z=0;
-while(x<3){
-z=z+1;
-}
+
+
+do {
+z=4;
+x=x-1;
+} while (x>0);
+
 return 1;
 }
