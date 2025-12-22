@@ -69,11 +69,11 @@ static char *current_func_end  = NULL;
 %token <charval> CHAR_LITERAL
 
 
-%type <attr> expression condition T F assign argument_list bool_expression
+%type <attr> expression condition T F assign argument_list bool_expression 
 
 %type <integer>   statement statement_list break_stmt block switch_stmt 
 %type <datatype> type
-%type <wlbl> M_while
+%type <wlbl> M_while M_if if_begin
 %type <wlbl> M_do
 %type <string> function_name function_name_void 
 %start program
@@ -547,23 +547,40 @@ condition:
     | expression { $$ = $1; }
     ;
 
+M_if:
+    {
+        WhileLabels *p = (WhileLabels*)calloc(1, sizeof(WhileLabels));
+        p->Lstart = newLabel();  // Label for else block
+        p->Lend = newLabel();    // Label for end of if-else
+      
+        $$ = p;
+
+    }
+    ;
     
 if_stmt:
-    IF LPAREN condition RPAREN if_block { 
-        printf("IF statement executed\n"); 
-    }
-    | IF LPAREN condition RPAREN if_block ELSE else_block {
+    // IF-ELSE (needs M_if for 2 labels)
+    if_begin ELSE else_block
+    {
+        emit("LABEL", NULL, NULL, $1->Lend);       // End label
+        free($1);
         printf("IF-ELSE statement executed\n");  
     }
-    | IF error RPAREN if_block {
-        syntaxError("Malformed condition in IF statement");
-        yyerrok;
+    | if_begin
+    ;
+
+    
+if_begin:
+    IF LPAREN condition RPAREN M_if{
+        emit("JMPF", $3.place, NULL, $5->Lstart);  // Jump to else
+    } if_block
+    {
+        emit("JMP", NULL, NULL, $5->Lend);         // Jump to end
+        emit("LABEL", NULL, NULL, $5->Lstart);     // Else label 
+        $$ = $5;
     }
-    | IF LPAREN condition error {
-        syntaxError("Missing closing parenthesis in IF statement");
-        yyerrok;
-    }
-    ;  
+    ;
+
 
 if_block:
     LBRACE {enter_scope("if-block");} statement_list {exit_scope();} RBRACE
@@ -572,6 +589,8 @@ if_block:
 else_block:
     LBRACE {enter_scope("else-block");} statement_list {exit_scope();} RBRACE
     ;
+
+
 
 M_while:  
     {

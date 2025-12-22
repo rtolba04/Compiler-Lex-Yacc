@@ -67,7 +67,7 @@ char *newLabel(void)
 
 void emit(const char *op, const char *arg1, const char *arg2, const char *res)
 {
-    printf("delay_emit=%d\n", delay_emit);
+
     if (delay_emit)
     {
         ensure_dcap();
