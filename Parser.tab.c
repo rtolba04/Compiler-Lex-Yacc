@@ -581,11 +581,11 @@ static const yytype_uint16 yyrline[] =
      378,   394,   409,   422,   429,   436,   440,   446,   451,   460,
      473,   486,   500,   514,   528,   542,   555,   568,   582,   586,
      600,   598,   610,   618,   618,   629,   629,   629,   633,   633,
-     633,   639,   650,   653,   653,   649,   675,   677,   682,   687,
-     691,   695,   674,   708,   719,   718,   745,   755,   756,   762,
-     763,   768,   767,   792,   800,   815,   828,   838,   851,   867,
-     882,   883,   888,   897,   914,   918,   934,   942,   952,   960,
-     965,   992,   992,   992,   992,   996,  1003
+     633,   639,   650,   654,   654,   649,   677,   679,   684,   690,
+     694,   698,   676,   711,   722,   721,   749,   759,   760,   766,
+     767,   772,   771,   796,   804,   819,   832,   842,   855,   871,
+     886,   887,   892,   901,   918,   922,   938,   946,   957,   965,
+     970,   997,   997,   997,   997,  1001,  1008
 };
 #endif
 
@@ -1920,7 +1920,7 @@ yyreduce:
     {
         checkBreakContext(loop_depth, switch_depth);
         printf("BREAK statement executed\n");
-        emit("JMP", NULL, NULL, current_switch_end);
+        emit("JMP", NULL, NULL, current_break_target);
         (yyval.integer) = 1; 
     ;}
     break;
@@ -2771,6 +2771,7 @@ yyreduce:
 /* Line 1455 of yacc.c  */
 #line 650 "Parser.y"
     {   emit("JMPF", (yyvsp[(4) - (5)].attr).place, NULL, (yyvsp[(2) - (5)].wlbl)->Lend);
+        current_break_target = (yyvsp[(2) - (5)].wlbl)->Lend;
         loop_depth++; 
     ;}
     break;
@@ -2778,25 +2779,26 @@ yyreduce:
   case 93:
 
 /* Line 1455 of yacc.c  */
-#line 653 "Parser.y"
+#line 654 "Parser.y"
     {enter_scope("while");;}
     break;
 
   case 94:
 
 /* Line 1455 of yacc.c  */
-#line 653 "Parser.y"
+#line 654 "Parser.y"
     {exit_scope();;}
     break;
 
   case 95:
 
 /* Line 1455 of yacc.c  */
-#line 654 "Parser.y"
+#line 655 "Parser.y"
     { 
         emit("JMP", NULL, NULL, (yyvsp[(2) - (11)].wlbl)->Lstart);
         emit("LABEL", NULL, NULL, (yyvsp[(2) - (11)].wlbl)->Lend);
         free((yyvsp[(2) - (11)].wlbl));
+        current_break_target = NULL; 
         loop_depth--;
         printf("WHILE loop executed\n"); 
     ;}
@@ -2805,14 +2807,14 @@ yyreduce:
   case 96:
 
 /* Line 1455 of yacc.c  */
-#line 675 "Parser.y"
+#line 677 "Parser.y"
     { enter_scope("for-loop"); ;}
     break;
 
   case 97:
 
 /* Line 1455 of yacc.c  */
-#line 677 "Parser.y"
+#line 679 "Parser.y"
     {
       (yyval.string) = newLabel();  // Save start label
       emit("LABEL", NULL, NULL, (yyval.string));
@@ -2822,17 +2824,18 @@ yyreduce:
   case 98:
 
 /* Line 1455 of yacc.c  */
-#line 682 "Parser.y"
+#line 684 "Parser.y"
     {
         (yyval.string) = newLabel();  // Save end label
-        emit("JMPF", (yyvsp[(6) - (6)].attr).place, NULL, (yyval.string));  
+        emit("JMPF", (yyvsp[(6) - (6)].attr).place, NULL, (yyval.string)); 
+        current_break_target = (yyval.string); 
     ;}
     break;
 
   case 99:
 
 /* Line 1455 of yacc.c  */
-#line 687 "Parser.y"
+#line 690 "Parser.y"
     {
         delay_emit = 1;   // STOP assign from emitting
     ;}
@@ -2841,7 +2844,7 @@ yyreduce:
   case 100:
 
 /* Line 1455 of yacc.c  */
-#line 691 "Parser.y"
+#line 694 "Parser.y"
     {
         delay_emit = 0;   // Resume normal emission
     ;}
@@ -2850,21 +2853,21 @@ yyreduce:
   case 101:
 
 /* Line 1455 of yacc.c  */
-#line 695 "Parser.y"
+#line 698 "Parser.y"
     { loop_depth++; ;}
     break;
 
   case 102:
 
 /* Line 1455 of yacc.c  */
-#line 697 "Parser.y"
+#line 700 "Parser.y"
     { 
         flush_delayed();  // Emit any delayed quads
         emit("JMP", NULL, NULL, (yyvsp[(5) - (16)].string));
         
         // Place end label
         emit("LABEL", NULL, NULL, (yyvsp[(7) - (16)].string));
-
+        current_break_target = NULL;
         loop_depth--;
         printf("FOR loop executed\n");
         exit_scope(); 
@@ -2874,7 +2877,7 @@ yyreduce:
   case 103:
 
 /* Line 1455 of yacc.c  */
-#line 708 "Parser.y"
+#line 711 "Parser.y"
     {
         syntaxError("Malformed FOR loop structure");
         loop_depth--;
@@ -2886,7 +2889,7 @@ yyreduce:
   case 104:
 
 /* Line 1455 of yacc.c  */
-#line 719 "Parser.y"
+#line 722 "Parser.y"
     { 
         if (checkVariableDeclared((yyvsp[(3) - (4)].string))) {
             if (!checkVariableInitialized((yyvsp[(3) - (4)].string))) {
@@ -2899,13 +2902,14 @@ yyreduce:
         enter_scope("switch-scope");
         current_switch_var = (yyvsp[(3) - (4)].string);
         current_switch_end = newLabel();
+        current_break_target = current_switch_end; 
     ;}
     break;
 
   case 105:
 
 /* Line 1455 of yacc.c  */
-#line 733 "Parser.y"
+#line 737 "Parser.y"
     {
         emit("LABEL", NULL, NULL, current_switch_end);
         
@@ -2923,7 +2927,7 @@ yyreduce:
   case 106:
 
 /* Line 1455 of yacc.c  */
-#line 745 "Parser.y"
+#line 749 "Parser.y"
     {
         syntaxError("Malformed SWITCH statement");
         switch_depth--;
@@ -2935,7 +2939,7 @@ yyreduce:
   case 111:
 
 /* Line 1455 of yacc.c  */
-#line 768 "Parser.y"
+#line 772 "Parser.y"
     {
         // Create and emit label for next case
         char *Lnext = newLabel();
@@ -2953,7 +2957,7 @@ yyreduce:
   case 112:
 
 /* Line 1455 of yacc.c  */
-#line 781 "Parser.y"
+#line 785 "Parser.y"
     {
 
         if ((yyvsp[(5) - (5)].integer) != 1) {
@@ -2967,7 +2971,7 @@ yyreduce:
   case 113:
 
 /* Line 1455 of yacc.c  */
-#line 793 "Parser.y"
+#line 797 "Parser.y"
     {
        
         printf("DEFAULT case executed successfully\n");
@@ -2977,7 +2981,7 @@ yyreduce:
   case 114:
 
 /* Line 1455 of yacc.c  */
-#line 801 "Parser.y"
+#line 805 "Parser.y"
     { 
 
         if((yyvsp[(6) - (7)].integer) != 2) {
@@ -2997,7 +3001,7 @@ yyreduce:
   case 115:
 
 /* Line 1455 of yacc.c  */
-#line 816 "Parser.y"
+#line 820 "Parser.y"
     { 
         emit("LABEL", NULL, NULL, current_func_end);
         emit("FUNC_END", current_func_name, NULL, NULL);
@@ -3015,7 +3019,7 @@ yyreduce:
   case 116:
 
 /* Line 1455 of yacc.c  */
-#line 829 "Parser.y"
+#line 833 "Parser.y"
     { 
         emit("LABEL", NULL, NULL, current_func_end);
         emit("FUNC_END", current_func_name, NULL, NULL);
@@ -3030,7 +3034,7 @@ yyreduce:
   case 117:
 
 /* Line 1455 of yacc.c  */
-#line 839 "Parser.y"
+#line 843 "Parser.y"
     { 
         emit("LABEL", NULL, NULL, current_func_end);
         emit("FUNC_END", current_func_name, NULL, NULL);
@@ -3045,7 +3049,7 @@ yyreduce:
   case 118:
 
 /* Line 1455 of yacc.c  */
-#line 852 "Parser.y"
+#line 856 "Parser.y"
     {
         if (insert_symbol((yyvsp[(2) - (2)].string), (yyvsp[(1) - (2)].datatype), FUNCTION, 0)) {
             setCurrentFunction((yyvsp[(2) - (2)].string), (yyvsp[(1) - (2)].datatype));
@@ -3064,7 +3068,7 @@ yyreduce:
   case 119:
 
 /* Line 1455 of yacc.c  */
-#line 868 "Parser.y"
+#line 872 "Parser.y"
     {
         if (insert_symbol((yyvsp[(2) - (2)].string), TYPE_VOID, FUNCTION, 0)) {
             setCurrentFunction((yyvsp[(2) - (2)].string), TYPE_VOID);
@@ -3082,7 +3086,7 @@ yyreduce:
   case 122:
 
 /* Line 1455 of yacc.c  */
-#line 889 "Parser.y"
+#line 893 "Parser.y"
     {
         if (!insert_symbol((yyvsp[(2) - (2)].string), (yyvsp[(1) - (2)].datatype), PARAMETER, 0)) {
             semanticError("Parameter declaration failed");
@@ -3093,7 +3097,7 @@ yyreduce:
   case 123:
 
 /* Line 1455 of yacc.c  */
-#line 898 "Parser.y"
+#line 902 "Parser.y"
     {
         if (current_function_name) {
             if(checkReturn(current_function_name, (yyvsp[(2) - (3)].attr).type, 1)) {
@@ -3115,7 +3119,7 @@ yyreduce:
   case 124:
 
 /* Line 1455 of yacc.c  */
-#line 914 "Parser.y"
+#line 918 "Parser.y"
     {
         syntaxError("Missing semicolon after RETURN statement");
         yyerrok;
@@ -3125,7 +3129,7 @@ yyreduce:
   case 125:
 
 /* Line 1455 of yacc.c  */
-#line 919 "Parser.y"
+#line 923 "Parser.y"
     {
         if (current_function_name) {
             if(checkReturn(current_function_name, TYPE_VOID, 0)) {
@@ -3146,7 +3150,7 @@ yyreduce:
   case 126:
 
 /* Line 1455 of yacc.c  */
-#line 934 "Parser.y"
+#line 938 "Parser.y"
     {
         syntaxError("Invalid RETURN statement");
         yyerrok;
@@ -3156,12 +3160,13 @@ yyreduce:
   case 127:
 
 /* Line 1455 of yacc.c  */
-#line 942 "Parser.y"
+#line 946 "Parser.y"
     {
         WhileLabels *p = (WhileLabels*)calloc(1, sizeof(WhileLabels));
         p->Lstart = newLabel();
         p->Lend   = newLabel();
         emit("LABEL", NULL, NULL, p->Lstart);
+        current_break_target = p->Lend;
         (yyval.wlbl) = p;
     ;}
     break;
@@ -3169,12 +3174,12 @@ yyreduce:
   case 128:
 
 /* Line 1455 of yacc.c  */
-#line 953 "Parser.y"
+#line 958 "Parser.y"
     {
         emit("JMPF", (yyvsp[(6) - (8)].attr).place, NULL, (yyvsp[(2) - (8)].wlbl)->Lend);
         emit("JMP",  NULL, NULL, (yyvsp[(2) - (8)].wlbl)->Lstart);
         emit("LABEL", NULL, NULL, (yyvsp[(2) - (8)].wlbl)->Lend);
-      
+        current_break_target = NULL;
         printf("DO-WHILE loop executed\n");
     ;}
     break;
@@ -3182,7 +3187,7 @@ yyreduce:
   case 129:
 
 /* Line 1455 of yacc.c  */
-#line 960 "Parser.y"
+#line 965 "Parser.y"
     {
         syntaxError("Missing semicolon after DO-WHILE loop");
         loop_depth = 0; // Reset in case it was incremented
@@ -3193,7 +3198,7 @@ yyreduce:
   case 130:
 
 /* Line 1455 of yacc.c  */
-#line 966 "Parser.y"
+#line 971 "Parser.y"
     {
         syntaxError("Malformed DO-WHILE loop");
         loop_depth = 0; // Reset in case it was incremented
@@ -3204,35 +3209,35 @@ yyreduce:
   case 131:
 
 /* Line 1455 of yacc.c  */
-#line 992 "Parser.y"
+#line 997 "Parser.y"
     { loop_depth++; ;}
     break;
 
   case 132:
 
 /* Line 1455 of yacc.c  */
-#line 992 "Parser.y"
+#line 997 "Parser.y"
     { enter_scope("do-while"); ;}
     break;
 
   case 133:
 
 /* Line 1455 of yacc.c  */
-#line 992 "Parser.y"
+#line 997 "Parser.y"
     { exit_scope(); ;}
     break;
 
   case 134:
 
 /* Line 1455 of yacc.c  */
-#line 992 "Parser.y"
+#line 997 "Parser.y"
     { loop_depth--; ;}
     break;
 
   case 135:
 
 /* Line 1455 of yacc.c  */
-#line 997 "Parser.y"
+#line 1002 "Parser.y"
     {
         argument_count = 1;
         argument_types[0] = (yyvsp[(1) - (1)].attr).type; 
@@ -3244,7 +3249,7 @@ yyreduce:
   case 136:
 
 /* Line 1455 of yacc.c  */
-#line 1004 "Parser.y"
+#line 1009 "Parser.y"
     {
         argument_types[argument_count] = (yyvsp[(3) - (3)].attr).type;  
         argument_count++;
@@ -3256,7 +3261,7 @@ yyreduce:
 
 
 /* Line 1455 of yacc.c  */
-#line 3260 "Parser.tab.c"
+#line 3265 "Parser.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -3468,7 +3473,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 1011 "Parser.y"
+#line 1016 "Parser.y"
 
 
 void yyerror(const char *s) {

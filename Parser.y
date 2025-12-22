@@ -120,7 +120,7 @@ break_stmt:
     {
         checkBreakContext(loop_depth, switch_depth);
         printf("BREAK statement executed\n");
-        emit("JMP", NULL, NULL, current_switch_end);
+        emit("JMP", NULL, NULL, current_break_target);
         $$ = 1; 
     }
     | BREAK error {
@@ -648,6 +648,7 @@ M_while:
 while_stmt:
     WHILE M_while LPAREN condition RPAREN 
     {   emit("JMPF", $4.place, NULL, $2->Lend);
+        current_break_target = $2->Lend;
         loop_depth++; 
     }
     LBRACE {enter_scope("while");} statement_list {exit_scope();} RBRACE  
@@ -655,6 +656,7 @@ while_stmt:
         emit("JMP", NULL, NULL, $2->Lstart);
         emit("LABEL", NULL, NULL, $2->Lend);
         free($2);
+        current_break_target = NULL; 
         loop_depth--;
         printf("WHILE loop executed\n"); 
     }
@@ -681,7 +683,8 @@ for_stmt:
     condition 
     {
         $<string>$ = newLabel();  // Save end label
-        emit("JMPF", $6.place, NULL, $<string>$);  
+        emit("JMPF", $6.place, NULL, $<string>$); 
+        current_break_target = $<string>$; 
     }
     SEMICOLON 
     {
@@ -700,7 +703,7 @@ for_stmt:
         
         // Place end label
         emit("LABEL", NULL, NULL, $<string>7);
-
+        current_break_target = NULL;
         loop_depth--;
         printf("FOR loop executed\n");
         exit_scope(); 
@@ -728,6 +731,7 @@ switch_stmt:
         enter_scope("switch-scope");
         current_switch_var = $3;
         current_switch_end = newLabel();
+        current_break_target = current_switch_end; 
     }
     LBRACE case_list switch_optional_default RBRACE
     {
@@ -944,6 +948,7 @@ M_do:
         p->Lstart = newLabel();
         p->Lend   = newLabel();
         emit("LABEL", NULL, NULL, p->Lstart);
+        current_break_target = p->Lend;
         $$ = p;
     }
 ;
@@ -954,7 +959,7 @@ do_while_stmt:
         emit("JMPF", $6.place, NULL, $2->Lend);
         emit("JMP",  NULL, NULL, $2->Lstart);
         emit("LABEL", NULL, NULL, $2->Lend);
-      
+        current_break_target = NULL;
         printf("DO-WHILE loop executed\n");
     }
     | DO M_do do_block WHILE LPAREN condition RPAREN error {
