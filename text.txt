@@ -1,23 +1,9 @@
-int findSum(int x, int y){
-
-int sum=x+y;
-return sum;
-}
-
-void empty(){
-string name="saja";
-return;
-}
 int main(){
-
-int z=0;
-for(int i=0;i<3;i=i+1)
-{
-z=z+i;
+int x=3;
+int z;
+z=0;
+while(x<3){
+z=z+1;
 }
-
-int l=7;
-findSum(z,l);
-empty();
 return 1;
 }

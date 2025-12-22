@@ -39,7 +39,7 @@ extern int line_num;
     DataType datatype;   
     WhileLabels *wlbl;
     Attr attr;
-
+   
 
    
 }
@@ -69,6 +69,7 @@ extern int line_num;
 
 %type <integer>   statement statement_list break_stmt block switch_stmt 
 %type <datatype> type
+%type <wlbl> M_while
 %type <string> function_name function_name_void 
 %start program
 %%
@@ -566,17 +567,31 @@ if_block:
 else_block:
     LBRACE {enter_scope("else-block");} statement_list {exit_scope();} RBRACE
     ;
-    
+
+M_while:  
+    {
+        WhileLabels *p = (WhileLabels*)calloc(1, sizeof(WhileLabels));
+        p->Lstart = newLabel();
+        p->Lend = newLabel();
+        emit("LABEL", NULL, NULL, p->Lstart);
+        $$ = p;
+    }
+    ; 
 
 while_stmt:
-    WHILE LPAREN condition RPAREN 
-    { loop_depth++; }
+    WHILE M_while LPAREN condition RPAREN 
+    {   emit("JMPF", $4.place, NULL, $2->Lend);
+        loop_depth++; 
+    }
     LBRACE {enter_scope("while");} statement_list {exit_scope();} RBRACE  
     { 
+        emit("JMP", NULL, NULL, $2->Lstart);
+        emit("LABEL", NULL, NULL, $2->Lend);
+        free($2);
         loop_depth--;
         printf("WHILE loop executed\n"); 
     }
-    | WHILE error RPAREN LBRACE statement_list RBRACE {
+    /* | WHILE error RPAREN LBRACE statement_list RBRACE {
         syntaxError("Malformed condition in WHILE loop");
         loop_depth--;
         yyerrok;
@@ -585,7 +600,7 @@ while_stmt:
         syntaxError("Missing closing parenthesis in WHILE loop");
         loop_depth--;
         yyerrok;
-    }
+    } */
     ;
 
 for_stmt:
