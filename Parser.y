@@ -791,10 +791,8 @@ case_stmt:
 default_case:
     DEFAULT COLON statement_list
     {
-        if ($3 != 1) {
-            semanticError("Default case must end with a 'break;' statement");
-        }
-        printf("DEFAULT case executed successfully with mandatory break\n");
+       
+        printf("DEFAULT case executed successfully\n");
     }
     ;
 
