@@ -99,6 +99,7 @@ statement:
     declaration_stmt { $$ = 0; }
     | assignment_stmt  { $$ = 0; }
     | expression SEMICOLON { $$ = 0; }
+    | expression error     { syntaxError("Missing semicolon after expression"); yyerrok; $$ = 0; }
     | if_stmt { $$ = 0; }
     | while_stmt { $$ = 0; }
     | for_stmt { $$ = 0; }
@@ -117,6 +118,11 @@ break_stmt:
         printf("BREAK statement executed\n");
         $$ = 1; 
     }
+    | BREAK error {
+        syntaxError("Missing semicolon after BREAK");
+        yyerrok;
+        $$ = 1; 
+    }
     ;
 block: 
     LBRACE { enter_scope("block"); } 
@@ -133,6 +139,10 @@ declaration_stmt:
             semanticError("Variable declaration failed");
         }
     }
+    | type IDENTIFIER error {
+        syntaxError("Missing semicolon after variable declaration");
+        yyerrok;
+    }
     | CONST type IDENTIFIER ASSIGN expression SEMICOLON
     {
         SymbolEntry *entry = insert_symbol($3, $2, VARIABLE, 1);
@@ -142,6 +152,10 @@ declaration_stmt:
         } else {
             semanticError("Const variable declaration failed");
         }
+    }
+    | CONST type IDENTIFIER ASSIGN expression error {
+        syntaxError("Missing semicolon after const variable declaration");
+        yyerrok;
     }
     | type IDENTIFIER ASSIGN expression SEMICOLON
     {
@@ -153,12 +167,20 @@ declaration_stmt:
             semanticError("Variable declaration failed");
         }
     }
+    | type IDENTIFIER ASSIGN expression error {
+        syntaxError("Missing semicolon after variable declaration with initialization");
+        yyerrok;
+    }
     | BOOL_TYPE IDENTIFIER SEMICOLON
     {
         if (!insert_symbol($2, TYPE_BOOL, VARIABLE, 0)) {
 
             semanticError("Boolean variable declaration failed");
         }
+    }
+    | BOOL_TYPE IDENTIFIER error {
+        syntaxError("Missing semicolon after boolean variable declaration");
+        yyerrok;
     }
     | BOOL_TYPE IDENTIFIER ASSIGN bool_expression SEMICOLON
     {
@@ -171,6 +193,10 @@ declaration_stmt:
             
             semanticError("Boolean variable declaration failed");
         }
+    }
+    | BOOL_TYPE IDENTIFIER ASSIGN bool_expression error {
+        syntaxError("Missing semicolon after boolean variable declaration with initialization");
+        yyerrok;
     }
     | type error SEMICOLON {
         syntaxError("Invalid variable declaration");
@@ -239,7 +265,10 @@ assignment_stmt:
             }
         }    
     }
-    
+    | IDENTIFIER ASSIGN expression error {
+        syntaxError("Missing semicolon after assignment");
+        yyerrok;
+    }
     | error ASSIGN expression SEMICOLON {
         syntaxError("Invalid left-hand side in assignment");
         yyerrok;
@@ -855,6 +884,10 @@ return_stmt:
       
         printf("RETURN statement executed\n");
     }
+    | RETURN expression error {
+        syntaxError("Missing semicolon after RETURN statement");
+        yyerrok;
+    }
     | RETURN SEMICOLON
     {
         if (current_function_name) {
@@ -870,6 +903,10 @@ return_stmt:
             semanticError("Return statement outside of function");
         }
         printf("RETURN (void) statement executed\n");
+    }
+    | RETURN error {
+        syntaxError("Invalid RETURN statement");
+        yyerrok;
     }
     ;
 
@@ -892,6 +929,11 @@ do_while_stmt:
         emit("LABEL", NULL, NULL, $2->Lend);
       
         printf("DO-WHILE loop executed\n");
+    }
+    | DO M_do do_block WHILE LPAREN condition RPAREN error {
+        syntaxError("Missing semicolon after DO-WHILE loop");
+        loop_depth = 0; // Reset in case it was incremented
+        yyerrok;
     }
     | DO error SEMICOLON
     {
