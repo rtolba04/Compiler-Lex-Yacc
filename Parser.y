@@ -560,13 +560,22 @@ M_if:
     
 if_stmt:
     // IF-ELSE (needs M_if for 2 labels)
-    if_begin ELSE else_block
+    if_begin 
+    ELSE
+    {
+        emit("JMP", NULL, NULL, $1->Lend);         // Jump to end
+        emit("LABEL", NULL, NULL, $1->Lstart);     // Else label 
+    }
+     else_block
     {
         emit("LABEL", NULL, NULL, $1->Lend);       // End label
         free($1);
         printf("IF-ELSE statement executed\n");  
     }
     | if_begin
+    {
+        emit("LABEL", NULL, NULL, $1->Lstart);      
+    }
     ;
 
     
@@ -575,8 +584,7 @@ if_begin:
         emit("JMPF", $3.place, NULL, $5->Lstart);  // Jump to else
     } if_block
     {
-        emit("JMP", NULL, NULL, $5->Lend);         // Jump to end
-        emit("LABEL", NULL, NULL, $5->Lstart);     // Else label 
+        
         $$ = $5;
     }
     ;

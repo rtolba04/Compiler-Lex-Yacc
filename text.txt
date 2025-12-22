@@ -6,11 +6,13 @@ int main(){
 
  if(z==sum){
   x=5;
-  
+  return 0;
  }
-else {
-x=7; 
+else{
+x=7;
+return x;
 }
+
 
 bool y;
 y=(x>sum);
