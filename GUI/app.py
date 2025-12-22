@@ -34,10 +34,11 @@ def run_compiler():
         )
 
         output = ""
+        if result.stderr:
+            output += result.stderr
         if result.stdout:
             output += result.stdout
-        if result.stderr:
-            output += "\nERROR:\n" + result.stderr
+
 
         return jsonify({"output": output.strip() or "No output."})
 

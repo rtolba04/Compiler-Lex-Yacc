@@ -2,9 +2,14 @@ int main(){
 bool y = true;
 int x =  6 + (9 * 0);
 char z = 'u';
-  while( 'k' == z){
+  while ('k' == z){
      x = x+1;
+     
   }
-  return 0;
-
+    if ( 'k' == z){
+     x = x+1
+     
+  }
+  
+   return 0;
 }

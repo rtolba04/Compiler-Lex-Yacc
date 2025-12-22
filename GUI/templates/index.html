@@ -10,7 +10,6 @@
 <div class="container">
     <header>
         <h1>Custom Compiler</h1>
-        <p>Local compiler execution interface</p>
     </header>
 
     <main>
@@ -19,20 +18,19 @@
                 <span>Source Code</span>
                 <button id="runBtn">Run</button>
             </div>
-            <textarea id="codeInput" placeholder="Write your code here..."></textarea>
+            <div class="editor-panel">
+                <div class="gutter" id="gutter"><pre>1</pre></div>
+                <textarea id="codeInput" placeholder="Write your code here..." spellcheck="false"></textarea>
+            </div>
         </section>
 
         <section class="output">
-            <div class="header-bar">
+            <div class="header-bar" >
                 <span>Output</span>
             </div>
             <pre id="outputBox"></pre>
         </section>
     </main>
-
-    <footer>
-        Local C++ Compiler UI
-    </footer>
 </div>
 
 <script src="/static/script.js"></script>
