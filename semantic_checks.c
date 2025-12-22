@@ -10,28 +10,6 @@ int count_syntax_errors = 0;
 char *current_function_name = NULL;
 DataType current_function_return_type = TYPE_VOID;
 
-const char *dataTypeToString(DataType type)
-{
-    switch (type)
-    {
-    case TYPE_INT:
-        return "int";
-    case TYPE_FLOAT:
-        return "float";
-    case TYPE_CHAR:
-        return "char";
-    case TYPE_STRING:
-        return "string";
-    case TYPE_BOOL:
-        return "bool";
-    case TYPE_VOID:
-        return "void";
-    case TYPE_UNKNOWN:
-        return "unknown";
-    default:
-        return "invalid";
-    }
-}
 // Error reporting functions
 void semanticError(const char *message)
 {

@@ -45,7 +45,4 @@ int checkBreakContext(int loop_depth, int switch_depth);
 // Print error summary
 void printErrorSummary();
 
-// Utility function to convert DataType to string
-const char *dataTypeToString(DataType type);
-
 #endif

@@ -64,9 +64,14 @@ int update_symbol_used(const char *name);
 
 unsigned int hash_function(const char *str);
 
-void print_symbol_table_recursive(Scope *scope);
+void print_symbol_table_recursive(Scope *scope, FILE *file);
 void print_symbol_table();
 
 SymbolEntry *lookup_in_scope(Scope *scope, const char *name);
 void save_function_parameters(SymbolEntry *func_entry, Scope *func_scope);
+
+// Helper function to convert DataType enum to string
+const char *dataTypeToString(DataType type);
+// Helper function to convert SymbolKind enum to string
+const char *symbolKindToString(SymbolKind kind);
 #endif

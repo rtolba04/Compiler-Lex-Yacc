@@ -16,6 +16,14 @@ unsigned int hash_function(const char *str)
 
 void CreateSymbolTable()
 {
+    FILE *file = fopen("symbol_table_output.txt", "w");
+    if (file)
+    {
+        fprintf(file, "SYMBOL TABLE OUTPUT\n");
+        fprintf(file, "Compilation Started\n");
+        fprintf(file, "================================================================================\n\n");
+        fclose(file);
+    }
     Scope *global_scope = calloc(1, sizeof(Scope)); // allocate mem fpor one scope
     global_scope->id = 0;
     global_scope->level = 0;
@@ -41,12 +49,12 @@ void enter_scope(const char *scope_name)
     }
     current_scope = new_scope;
     // printf("printing after entering scope:\n");
-    // print_symbol_table();
+    print_symbol_table();
 }
 
 void exit_scope()
 {
-    // print_symbol_table();
+    print_symbol_table();
     if (current_scope && current_scope->parent)
     {
         Scope *scope_to_delete = current_scope;
@@ -90,7 +98,7 @@ void exit_scope()
         free(scope_to_delete);
     }
     // printf("printing after exiting scope:\n");
-    // print_symbol_table();
+    print_symbol_table();
 }
 
 SymbolEntry *insert_symbol(const char *name, DataType type, SymbolKind kind, int is_const)
@@ -190,63 +198,125 @@ int update_symbol_used(const char *name)
     return 1;
 }
 
-void print_symbol_table_recursive(Scope *scope)
+void print_symbol_table_recursive(Scope *scope, FILE *file)
 {
     if (!scope)
         return;
 
     // Print this scope
-    printf("\n--- Symbol Table (Scope ID: %d, Level: %d, Name: %s) ---\n",
-           scope->id,
-           scope->level,
-           scope->name ? scope->name : "(unnamed)");
+    fprintf(file, "\n--- Symbol Table (Scope ID: %d, Level: %d, Name: %s) ---\n",
+            scope->id,
+            scope->level,
+            scope->name ? scope->name : "(unnamed)");
 
     for (int i = 0; i < HASH_SIZE; i++)
     {
         SymbolEntry *entry = scope->symbols[i];
         while (entry)
         {
-            printf("Name: %-10s | Type: %-10d | Kind: %-10d | Const: %d | Init: %d | Used: %d",
-                   entry->name,
-                   entry->type,
-                   entry->kind,
-                   entry->is_const,
-                   entry->is_initialized,
-                   entry->is_used);
+            fprintf(file, "Name: %-10s | Type: %-10s | Kind: %-10s | Const: %d | Init: %d | Used: %d",
+                    entry->name,
+                    dataTypeToString(entry->type),
+                    symbolKindToString(entry->kind),
+                    entry->is_const,
+                    entry->is_initialized,
+                    entry->is_used);
 
             // Print function parameter information if it's a function
             if (entry->kind == FUNCTION && entry->param_count > 0)
             {
-                printf(" | Parameters: [");
+                fprintf(file, " | Parameters: [");
                 for (int j = 0; j < entry->param_count; j++)
                 {
                     if (j > 0)
-                        printf(", ");
-                    printf("%s:%d", entry->param_names[j], entry->param_types[j]);
+                        fprintf(file, ", ");
+                    fprintf(file, "%s:%s", entry->param_names[j], dataTypeToString(entry->param_types[j]));
                 }
-                printf("]");
+                fprintf(file, "]");
             }
             else if (entry->kind == FUNCTION && entry->param_count == 0)
             {
-                printf(" | Parameters: []");
+                fprintf(file, " | Parameters: []");
             }
 
-            printf("\n");
+            fprintf(file, "\n");
             entry = entry->next;
         }
     }
 
-    printf("--- End of Scope ---\n");
+    fprintf(file, "--- End of Scope ---\n");
 
     // Recursively print parent scopes
     if (scope->parent)
     {
-        print_symbol_table_recursive(scope->parent);
+        print_symbol_table_recursive(scope->parent, file);
     }
 }
+
 void print_symbol_table()
 {
-    print_symbol_table_recursive(current_scope);
+    // Open file in append mode (will be cleared by CreateSymbolTable at start)
+    FILE *file = fopen("symbol_table_output.txt", "a");
+    if (!file)
+    {
+        fprintf(stderr, "Error: Could not open symbol_table_output.txt for writing\n");
+        return;
+    }
+
+    // Add separator between different print calls within the same run
+    fprintf(file, "\n");
+    fprintf(file, "================================================================================\n");
+    fprintf(file, "                        SYMBOL TABLE SNAPSHOT                                   \n");
+    fprintf(file, "================================================================================\n");
+
+    print_symbol_table_recursive(current_scope, file);
+
+    fprintf(file, "\n================================================================================\n");
+    fprintf(file, "                        END OF SNAPSHOT                                         \n");
+    fprintf(file, "================================================================================\n");
+    fprintf(file, "\n\n");
+
+    fclose(file);
+}
+
+// Helper function to convert DataType enum to string
+const char *dataTypeToString(DataType type)
+{
+    switch (type)
+    {
+    case TYPE_INT:
+        return "int";
+    case TYPE_FLOAT:
+        return "float";
+    case TYPE_CHAR:
+        return "char";
+    case TYPE_STRING:
+        return "string";
+    case TYPE_BOOL:
+        return "bool";
+    case TYPE_VOID:
+        return "void";
+    case TYPE_UNKNOWN:
+        return "unknown";
+    default:
+        return "invalid";
+    }
+}
+
+// Helper function to convert SymbolKind enum to string
+const char *symbolKindToString(SymbolKind kind)
+{
+    switch (kind)
+    {
+    case VARIABLE:
+        return "VARIABLE";
+    case FUNCTION:
+        return "FUNCTION";
+    case PARAMETER:
+        return "PARAMETER";
+    default:
+        return "UNKNOWN";
+    }
 }
 
 SymbolEntry *lookup_in_scope(Scope *scope, const char *name)
