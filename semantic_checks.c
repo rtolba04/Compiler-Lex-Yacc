@@ -305,18 +305,6 @@ int checkFunctionCall(const char *func_name, DataType *arg_types, int arg_count)
     return 1;
 }
 
-// Check boolean condition
-int checkBooleanCondition(DataType condition_type)
-{
-    if (condition_type != TYPE_BOOL &&
-        condition_type != TYPE_INT &&
-        condition_type != TYPE_UNKNOWN)
-    {
-        semanticError("Condition must be boolean or integer type");
-        return 0;
-    }
-    return 1;
-}
 
 // Check division by zero
 int checkDivisionByZero(int divisor)

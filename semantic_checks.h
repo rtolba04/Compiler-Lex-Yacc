@@ -33,8 +33,6 @@ void clearCurrentFunction();
 int checkReturn(const char *func_name, DataType return_type, int has_value);
 int checkFunctionCall(const char *func_name, DataType *arg_types, int arg_count);
 
-// Boolean condition checks
-int checkBooleanCondition(DataType condition_type);
 
 // Division by zero check
 int checkDivisionByZero(int divisor);
