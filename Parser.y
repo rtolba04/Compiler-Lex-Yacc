@@ -19,6 +19,7 @@ typedef struct {
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "symbol_table.h"
 #include "semantic_checks.h"
 
@@ -37,6 +38,42 @@ static char *current_func_end  = NULL;
 static char *current_switch_var = NULL;
 static char *current_switch_end = NULL;
 static char *current_break_target = NULL;
+static DataType current_switch_type = TYPE_UNKNOWN;
+
+/* Case values linked-list to track duplicates within a switch */
+typedef struct CaseNode {
+    char *value;
+    struct CaseNode *next;
+} CaseNode;
+
+static CaseNode *current_case_list = NULL;
+
+int case_value_seen(const char *val) {
+    CaseNode *n = current_case_list;
+    while (n) {
+        if (val && n->value && strcmp(n->value, val) == 0) return 1;
+        n = n->next;
+    }
+    return 0;
+}
+
+void add_case_value(const char *val) {
+    CaseNode *n = (CaseNode*)calloc(1, sizeof(CaseNode));
+    n->value = val ? strdup(val) : NULL;
+    n->next = current_case_list;
+    current_case_list = n;
+}
+
+void clear_case_list() {
+    CaseNode *n = current_case_list;
+    while (n) {
+        CaseNode *tmp = n->next;
+        if (n->value) free(n->value);
+        free(n);
+        n = tmp;
+    }
+    current_case_list = NULL;
+}
 %}
 
 %union {
@@ -46,10 +83,7 @@ static char *current_break_target = NULL;
     char charval;  
     DataType datatype;   
     WhileLabels *wlbl;
-    Attr attr;
-   
-
-   
+    Attr attr;   
 }
 
 
@@ -103,7 +137,6 @@ statement:
     declaration_stmt { $$ = 0; }
     | assignment_stmt  { $$ = 0; }
     | expression SEMICOLON { $$ = 0; }
-    | expression error     { syntaxError("Missing semicolon after expression"); yyerrok; $$ = 0; }
     | if_stmt { $$ = 0; }
     | while_stmt { $$ = 0; }
     | for_stmt { $$ = 0; }
@@ -141,9 +174,7 @@ block:
 declaration_stmt:
     type IDENTIFIER SEMICOLON
     {
-        if (!insert_symbol($2, $1, VARIABLE, 0)) {
-            semanticError("Variable declaration failed");
-        }
+        insert_symbol($2, $1, VARIABLE, 0);
     }
     | type IDENTIFIER error {
         syntaxError("Missing semicolon after variable declaration");
@@ -155,8 +186,6 @@ declaration_stmt:
         if (entry) {
             entry->is_initialized = 1;
             emit("ASSIGN", $5.place, NULL, $3);
-        } else {
-            semanticError("Const variable declaration failed");
         }
     }
     | CONST type IDENTIFIER ASSIGN expression error {
@@ -169,9 +198,7 @@ declaration_stmt:
         if (entry) {
             entry->is_initialized = 1;
             emit("ASSIGN", $4.place, NULL, $2);
-        } else {
-            semanticError("Variable declaration failed");
-        }
+        } 
     }
     | type IDENTIFIER ASSIGN expression error {
         syntaxError("Missing semicolon after variable declaration with initialization");
@@ -195,9 +222,6 @@ declaration_stmt:
             entry->is_initialized = 1;
             emit("ASSIGN", $4.place, NULL, $2);
             printf("Boolean variable declared: %s\n", $2);
-        } else {
-            
-            semanticError("Boolean variable declaration failed");
         }
     }
     | BOOL_TYPE IDENTIFIER ASSIGN bool_expression error {
@@ -241,14 +265,8 @@ assignment_stmt:
     {
         DataType lhsType = getType($1);
         DataType rhsType = $3.type;
-        if (!checkVariableDeclared($1)) {
-            
-        } else {
-            // Check const reassignment
-            if (!checkConstReassignment($1)) {
-                // Error already reported
-            } else {
-                // Check type compatibility
+        if (checkVariableDeclared($1)) {
+            if (checkConstReassignment($1)) {
                 if (!areTypesCompatible(lhsType, rhsType))  
                 {
                 char error_msg[256];
@@ -260,10 +278,7 @@ assignment_stmt:
                 semanticError(error_msg);
                 }
                 else {
-                       if (!update_symbol_initialized($1)) {
-                    semanticError("Failed to update symbol initialization");
-                }
-                else{
+                if (update_symbol_initialized($1)) {
                     emit("ASSIGN", $3.place, NULL, $1);
                 }
                 }
@@ -330,29 +345,39 @@ T:
         $$.place = t;
     }
     | T DIVIDE F {
-    if ($3.type == TYPE_INT && $3.place==0) {
-        checkDivisionByZero(0);
-        $$.type = TYPE_UNKNOWN;
-        $$.place = NULL;
-    } else {
-        $$.type = resolveType($1.type, $3.type);
-        char *t = newTemp();
-        emit("DIV", $1.place, $3.place, t);
-        $$.place = t;
-    }
+        /* Check for division by zero when denominator is a literal */
+        if ($3.type == TYPE_INT && $3.place && strcmp($3.place, "0") == 0) {
+            checkDivisionByZero(0);
+            $$.type = TYPE_UNKNOWN;
+            $$.place = NULL;
+        } else if ($3.type == TYPE_FLOAT && $3.place && atof($3.place) == 0.0) {
+            checkDivisionByZero(0);
+            $$.type = TYPE_UNKNOWN;
+            $$.place = NULL;
+        } else {
+            $$.type = resolveType($1.type, $3.type);
+            char *t = newTemp();
+            emit("DIV", $1.place, $3.place, t);
+            $$.place = t;
+        }
     }
     | T MODULO F {
-    if ($1.type != TYPE_INT || $3.type != TYPE_INT) {
-        semanticError("Modulo operator requires integer operands");
-        $$.type = TYPE_UNKNOWN;
-        $$.place = NULL;
-    } else {
-        $$.type = TYPE_INT;
+        if ($1.type != TYPE_INT || $3.type != TYPE_INT) {
+            semanticError("Modulo operator requires integer operands");
+            $$.type = TYPE_UNKNOWN;
+            $$.place = NULL;
+        } else if ($3.place && strcmp($3.place, "0") == 0) {
+            /* Modulo by zero */
+            checkDivisionByZero(0);
+            $$.type = TYPE_UNKNOWN;
+            $$.place = NULL;
+        } else {
+            $$.type = TYPE_INT;
 
-        char *t = newTemp();
-        emit("MOD", $1.place, $3.place, t);
-        $$.place = t;
-    }
+            char *t = newTemp();
+            emit("MOD", $1.place, $3.place, t);
+            $$.place = t;
+        }
     }
     | F {
         $$ = $1;
@@ -394,7 +419,7 @@ F:
       | IDENTIFIER LPAREN argument_list RPAREN {
         if (checkFunctionCall($1, argument_types, argument_count)) {
             update_symbol_used($1);
-            $$.type = getType($1); //this will get the return type of the function since it is what is stored in the symbol table 
+            $$.type = getType($1); 
             char buf[32];
             snprintf(buf, sizeof(buf), "%d", argument_count);
             char *t = newTemp();
@@ -660,16 +685,16 @@ while_stmt:
         loop_depth--;
         printf("WHILE loop executed\n"); 
     }
-    /* | WHILE error RPAREN LBRACE statement_list RBRACE {
+    | WHILE error RPAREN LBRACE statement_list RBRACE {
         syntaxError("Malformed condition in WHILE loop");
         loop_depth--;
         yyerrok;
     }
-    | WHILE LPAREN condition error LBRACE statement_list RBRACE {
-        syntaxError("Missing closing parenthesis in WHILE loop");
-        loop_depth--;
-        yyerrok;
-    } */
+    // | WHILE LPAREN condition error LBRACE statement_list RBRACE {
+    //     syntaxError("Missing closing parenthesis in WHILE loop");
+    //     loop_depth--;
+    //     yyerrok;
+    // } 
     ;
 
 for_stmt:
@@ -721,9 +746,7 @@ switch_stmt:
     SWITCH LPAREN IDENTIFIER RPAREN 
     { 
         if (checkVariableDeclared($3)) {
-            if (!checkVariableInitialized($3)) {
-                // Error already reported
-            } else {
+            if (checkVariableInitialized($3)) {
                 update_symbol_used($3);
             }
         }
@@ -732,15 +755,20 @@ switch_stmt:
         current_switch_var = $3;
         current_switch_end = newLabel();
         current_break_target = current_switch_end; 
+        /* Initialize per-switch case tracking */
+        clear_case_list();
+        current_switch_type = getType($3);
     }
     LBRACE case_list switch_optional_default RBRACE
     {
         emit("LABEL", NULL, NULL, current_switch_end);
         
         // Clear globals
+        clear_case_list();
         current_switch_var = NULL;
         current_switch_end = NULL;
         current_break_target = NULL;
+        current_switch_type = TYPE_UNKNOWN;
         switch_depth--;
         exit_scope();
         printf("SWITCH statement executed on variable '%s'\n", $3);
@@ -770,25 +798,41 @@ case_list:
 case_stmt:
     CASE expression
     {
-        // Create and emit label for next case
+        if (current_switch_type == TYPE_UNKNOWN) {
+            semanticError("Switch variable has unknown type");
+        } else if ($2.type == TYPE_UNKNOWN) {
+            semanticError("Case expression has unknown type");
+        } else if ($2.type != current_switch_type) {
+            char errbuf[256];
+            snprintf(errbuf, sizeof(errbuf), "Type mismatch in CASE: case is '%s' but switch is '%s'", dataTypeToString($2.type), dataTypeToString(current_switch_type));
+            semanticError(errbuf);
+        }
+        if ($2.place) {
+            if (case_value_seen($2.place)) {
+                char errbuf[256];
+                snprintf(errbuf, sizeof(errbuf), "Duplicate CASE value '%s' in the same SWITCH", $2.place);
+                semanticError(errbuf);
+            }
+            add_case_value($2.place);
+        }
+
         char *Lnext = newLabel();
-        
-        // Compare switch variable with case value
+
         char *t = newTemp();
         emit("EQ", current_switch_var, $2.place, t);
         emit("JMPF", t, NULL, Lnext);
         
-        // Store Lnext to emit later
+        /* Store Lnext to emit later */
         $<string>$ = Lnext;
     }
     COLON statement_list
     {
 
         if ($5 != 1) {
-            semanticError("Case must end with a 'break;' statement");
+            syntaxError("Case must end with a 'break;' statement");
         }
         emit("LABEL", NULL, NULL, $<string>3);
-        printf("CASE executed successfully with mandatory break\n");
+        // printf("CASE executed successfully with mandatory break\n");
     }
     ;
 
@@ -910,7 +954,7 @@ return_stmt:
                 
             }
         } else {
-            semanticError("Return statement outside of function");
+            syntaxError("Return statement outside of function");
         }
       
         printf("RETURN statement executed\n");
@@ -931,7 +975,7 @@ return_stmt:
                 
             }
         } else {
-            semanticError("Return statement outside of function");
+            syntaxError("Return statement outside of function");
         }
         printf("RETURN (void) statement executed\n");
     }
@@ -989,9 +1033,6 @@ do_while_stmt:
         yyerrok;
     } */
     ;
-
-/* Helper nonterminal to avoid duplicated actions and reduce conflicts */
-
 
 do_block:
     { loop_depth++; } LBRACE { enter_scope("do-while"); } statement_list { exit_scope(); } RBRACE { loop_depth--; }

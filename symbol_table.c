@@ -1,4 +1,5 @@
 #include "symbol_table.h"
+#include "semantic_checks.h"
 static Scope *current_scope = NULL;
 DataType argument_types[MAX_ARGS];
 int argument_count = 0;
@@ -112,7 +113,10 @@ SymbolEntry *insert_symbol(const char *name, DataType type, SymbolKind kind, int
     {
         if (strcmp(entry->name, name) == 0)
         {
-            printf("Error: Variable '%s' already declared in this scope\n", name);
+            char error_msg[256];
+            snprintf(error_msg, sizeof(error_msg),
+                     "Variable '%s' already declared in this scope", name);
+            semanticError(error_msg);
             return NULL;
         }
         entry = entry->next;

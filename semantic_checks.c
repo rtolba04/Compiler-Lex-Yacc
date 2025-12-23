@@ -194,7 +194,7 @@ int checkReturn(const char *func_name, DataType return_type, int has_value)
 {
     if (!func_name)
     {
-        semanticError("Return statement outside of function");
+        syntaxError("Return statement outside of function");
         return 0;
     }
 
@@ -214,7 +214,7 @@ int checkReturn(const char *func_name, DataType return_type, int has_value)
         char error_msg[256];
         snprintf(error_msg, sizeof(error_msg),
                  "Void function '%s' cannot return a value", func_name);
-        semanticError(error_msg);
+        syntaxError(error_msg);
         return 0;
     }
 
@@ -224,12 +224,20 @@ int checkReturn(const char *func_name, DataType return_type, int has_value)
         char error_msg[256];
         snprintf(error_msg, sizeof(error_msg),
                  "Non-void function '%s' must return a value", func_name);
-        semanticError(error_msg);
+        syntaxError(error_msg);
         return 0;
     }
 
     // Check return type compatibility
     if (has_value && !areTypesCompatible(func_entry->type, return_type))
+    {
+        char error_msg[256];
+        snprintf(error_msg, sizeof(error_msg),
+                 "Return type mismatch in function '%s'", func_name);
+        semanticError(error_msg);
+        return 0;
+    }
+    if(!has_value && func_entry->type != TYPE_VOID)
     {
         char error_msg[256];
         snprintf(error_msg, sizeof(error_msg),
