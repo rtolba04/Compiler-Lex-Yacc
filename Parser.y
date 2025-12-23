@@ -34,6 +34,7 @@ extern int line_num;
 
 static char *current_func_name = NULL;
 static char *current_func_end  = NULL;
+static int current_function_has_return = 0;
 
 static char *current_switch_var = NULL;
 static char *current_switch_end = NULL;
@@ -958,14 +959,15 @@ function_decl:
     function_name LPAREN parameter_list RPAREN LBRACE statement_list RBRACE 
     { 
 
-        if($6 != 2) {
-            semanticError("Function must end with a return statement");
+        if(!current_function_has_return) {
+            semanticError("Function must contain a return statement");
         }
         emit("LABEL", NULL, NULL, current_func_end);
         emit("FUNC_END", current_func_name, NULL, NULL);
 
         current_func_end  = NULL;
         current_func_name = NULL;
+        current_function_has_return = 0;
         printf("Function declaration executed\n");
         clearCurrentFunction();
         exit_scope(); 
@@ -976,9 +978,10 @@ function_decl:
         emit("FUNC_END", current_func_name, NULL, NULL);
         current_func_end  = NULL;
         current_func_name = NULL;
-        if($5 != 2) {
-            semanticError("Function must end with a return statement");
+        if(!current_function_has_return) {
+            semanticError("Function must contain a return statement");
         }
+        current_function_has_return = 0;
         printf("Function declaration (no parameters) executed\n"); 
         clearCurrentFunction();
         exit_scope(); 
@@ -989,6 +992,7 @@ function_decl:
         emit("FUNC_END", current_func_name, NULL, NULL);
         current_func_end  = NULL;
         current_func_name = NULL;
+        current_function_has_return = 0;
         printf("Void function declaration executed\n"); 
         clearCurrentFunction();
         exit_scope();
@@ -999,6 +1003,7 @@ function_decl:
         emit("FUNC_END", current_func_name, NULL, NULL);
         current_func_end  = NULL;
         current_func_name = NULL;
+        current_function_has_return = 0;
         printf("Void function declaration (no parameters) executed\n"); 
         clearCurrentFunction();
         exit_scope();
@@ -1071,6 +1076,7 @@ return_stmt:
     RETURN expression SEMICOLON
     {
         if (current_function_name) {
+            current_function_has_return = 1;
             if(checkReturn(current_function_name, $2.type, 1)) {
                 // Return type matches
                 emit("RETURN", $2.place, NULL, NULL);              // simplest
@@ -1092,6 +1098,7 @@ return_stmt:
     | RETURN SEMICOLON
     {
         if (current_function_name) {
+            current_function_has_return = 1;
             if(checkReturn(current_function_name, TYPE_VOID, 0)) {
                 // Return type matches
                 emit("RETURN", NULL, NULL, NULL);              // simplest
