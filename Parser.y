@@ -724,7 +724,7 @@ if_begin:
     | IF LPAREN error RPAREN M_if {
         syntaxError("Malformed condition in IF statement");
         yyerrok;
-        // emit("JMPF", "0", NULL, $5->Lstart); 
+        emit("JMPF", "0", NULL, $5->Lstart); 
         $$ = $5;
     }
     | IF LPAREN condition error M_if {
