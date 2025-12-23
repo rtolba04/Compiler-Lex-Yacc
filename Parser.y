@@ -126,7 +126,18 @@ global_list:
     global_element | global_list global_element ;
 
 global_element: 
-    function_decl | declaration_stmt ;
+    function_decl 
+    | declaration_stmt
+    | error SEMICOLON { 
+        syntaxError("Invalid global declaration or statement"); 
+        yyerrok; 
+    }
+    | error IDENTIFIER SEMICOLON {
+        syntaxError("Invalid statement starting with identifier");
+        yyerrok;
+      
+    }
+    ;
 
 statement_list:
     statement { $$ = $1; }
@@ -146,6 +157,21 @@ statement:
     | return_stmt { $$ = 2; }
     | break_stmt { $$ = $1; }
     | block    { $$ = $1; }
+    | error SEMICOLON { 
+        syntaxError("Unrecognized statement. Discarding until semicolon.");
+        yyerrok; 
+        $$ = 0; 
+    }
+    | error RBRACE {
+         syntaxError("Missing semicolon or invalid statement before '}'.");
+         yyerrok;
+         $$ = 0;
+    }
+    | error IDENTIFIER SEMICOLON {
+        syntaxError("Invalid statement starting with identifier");
+        yyerrok;
+        $$ = 0;
+    }
     ;
 
 break_stmt:
@@ -192,6 +218,10 @@ declaration_stmt:
         syntaxError("Missing semicolon after const variable declaration");
         yyerrok;
     }
+    | CONST type IDENTIFIER ASSIGN error SEMICOLON {
+        syntaxError("Invalid expression in const variable initialization");
+        yyerrok;
+    }
     | type IDENTIFIER ASSIGN expression SEMICOLON
     {
         SymbolEntry *entry = insert_symbol($2, $1, VARIABLE, 0);
@@ -199,6 +229,10 @@ declaration_stmt:
             entry->is_initialized = 1;
             emit("ASSIGN", $4.place, NULL, $2);
         } 
+    }
+    | type IDENTIFIER ASSIGN error SEMICOLON {
+        syntaxError("Invalid expression in variable initialization");
+        yyerrok;
     }
     | type IDENTIFIER ASSIGN expression error {
         syntaxError("Missing semicolon after variable declaration with initialization");
@@ -229,7 +263,7 @@ declaration_stmt:
         yyerrok;
     }
     | type error SEMICOLON {
-        syntaxError("Invalid variable declaration");
+        syntaxError("Invalid variable name or syntax in declaration");
         yyerrok;
     }
     | CONST type error SEMICOLON {
@@ -321,7 +355,11 @@ expression:
         emit("ADD", $1.place, $3.place, t);
         $$.place = t;
     }
-
+    | expression PLUS error {
+        syntaxError("Missing operand after '+'");
+        yyerrok;
+        $$.type = TYPE_UNKNOWN; $$.place = newTemp();
+    }
     | expression MINUS T {
             $$.type = resolveType($1.type, $3.type);
 
@@ -329,6 +367,11 @@ expression:
             emit("SUB", $1.place, $3.place, t);
             $$.place = t;
         }
+    | expression MINUS error {
+        syntaxError("Missing operand after '-'");
+        yyerrok;
+        $$.type = TYPE_UNKNOWN; $$.place = newTemp();
+    }
 
     | T {
             $$ = $1;
@@ -343,6 +386,11 @@ T:
         char *t = newTemp();
         emit("MUL", $1.place, $3.place, t);
         $$.place = t;
+    }
+    | T MULTIPLY error {
+        syntaxError("Missing operand after '*'");
+        yyerrok;
+        $$.type = TYPE_UNKNOWN; $$.place = newTemp();
     }
     | T DIVIDE F {
         /* Check for division by zero when denominator is a literal */
@@ -360,6 +408,11 @@ T:
             emit("DIV", $1.place, $3.place, t);
             $$.place = t;
         }
+    }
+    | T DIVIDE error {
+        syntaxError("Missing operand after '/'");
+        yyerrok;
+        $$.type = TYPE_UNKNOWN; $$.place = newTemp();
     }
     | T MODULO F {
         if ($1.type != TYPE_INT || $3.type != TYPE_INT) {
@@ -379,6 +432,11 @@ T:
             $$.place = t;
         }
     }
+    | T MODULO error {
+        syntaxError("Missing operand after '%'");
+        yyerrok;
+        $$.type = TYPE_UNKNOWN; $$.place = newTemp();
+    }
     | F {
         $$ = $1;
     }
@@ -387,6 +445,17 @@ T:
 
 F:
     LPAREN condition RPAREN  { $$ = $2; }
+    | LPAREN error RPAREN {
+        syntaxError("Invalid expression inside parentheses");
+        yyerrok;
+        $$.type = TYPE_UNKNOWN;
+        $$.place = NULL;
+    }
+    | LPAREN expression error { 
+        syntaxError("Missing closing parenthesis ')'"); 
+        yyerrok;
+        $$ = $2; 
+    }
     | MINUS F {
         if ($2.type != TYPE_INT && $2.type != TYPE_FLOAT) {
             semanticError("Unary minus requires numeric operand");
@@ -647,6 +716,12 @@ if_begin:
         
         $$ = $5;
     }
+    | IF LPAREN error RPAREN M_if {
+        syntaxError("Malformed condition in IF statement");
+        yyerrok;
+        // emit("JMPF", "0", NULL, $5->Lstart); 
+        // $$ = $5;
+    }
     ;
 
 
@@ -685,16 +760,18 @@ while_stmt:
         loop_depth--;
         printf("WHILE loop executed\n"); 
     }
-    | WHILE error RPAREN LBRACE statement_list RBRACE {
-        syntaxError("Malformed condition in WHILE loop");
-        loop_depth--;
+    | WHILE M_while LPAREN error RPAREN {
+        syntaxError("Malformed condition in WHILE statement");
         yyerrok;
+        loop_depth++;
     }
-    // | WHILE LPAREN condition error LBRACE statement_list RBRACE {
-    //     syntaxError("Missing closing parenthesis in WHILE loop");
-    //     loop_depth--;
-    //     yyerrok;
-    // } 
+    LBRACE {enter_scope("while");} statement_list {exit_scope();} RBRACE {
+         emit("JMP", NULL, NULL, $2->Lstart);
+         emit("LABEL", NULL, NULL, $2->Lend);
+         free($2);
+         current_break_target = NULL; 
+         loop_depth--;
+    }
     ;
 
 for_stmt:
@@ -733,6 +810,16 @@ for_stmt:
         printf("FOR loop executed\n");
         exit_scope(); 
     }
+    // | FOR LPAREN error SEMICOLON condition SEMICOLON assign RPAREN LBRACE statement_list RBRACE {
+    //     syntaxError("Invalid declaration in FOR loop header");
+    //     yyerrok;
+    //     exit_scope();
+    // }
+    // | FOR LPAREN declaration_stmt error SEMICOLON assign RPAREN LBRACE statement_list RBRACE {
+    //     syntaxError("Invalid condition in FOR loop header");
+    //     yyerrok;
+    //     exit_scope();
+    // }
     | FOR error RPAREN LBRACE statement_list RBRACE {
         syntaxError("Malformed FOR loop structure");
         loop_depth--;
@@ -834,6 +921,13 @@ case_stmt:
         emit("LABEL", NULL, NULL, $<string>3);
         // printf("CASE executed successfully with mandatory break\n");
     }
+    | CASE error COLON statement_list {
+         syntaxError("Invalid value in CASE label");
+         yyerrok;
+         char *Lnext = newLabel(); 
+         emit("LABEL", NULL, NULL, Lnext); 
+         $<string>$ = Lnext;
+    }
     ;
 
 default_case:
@@ -893,6 +987,18 @@ function_decl:
         clearCurrentFunction();
         exit_scope();
     }
+    | function_name LPAREN parameter_list error LBRACE statement_list RBRACE {
+        syntaxError("Missing ')' or invalid parameters in function declaration");
+        yyerrok;
+        clearCurrentFunction();
+        exit_scope();
+    }
+    | function_name LPAREN error LBRACE statement_list RBRACE {
+        syntaxError("Malformed parameter list in function declaration");
+        yyerrok;
+        clearCurrentFunction();
+        exit_scope();
+    }
     ;
 
 function_name:
@@ -938,6 +1044,10 @@ parameter:
         if (!insert_symbol($2, $1, PARAMETER, 0)) {
             semanticError("Parameter declaration failed");
         }
+    }
+    | error {
+        syntaxError("Invalid function parameter declaration");
+        yyerrok;
     }
     ;
 
@@ -1046,12 +1156,24 @@ argument_list:
         emit("PARAM", $1.place, NULL, NULL); 
         $$ = $1;  // Pass through the type
     }
+    | error {
+         syntaxError("Invalid argument in function call");
+         yyerrok;
+         argument_types[0] = TYPE_UNKNOWN;
+         argument_count = 1;
+    }
     | argument_list COMMA expression
     {
         argument_types[argument_count] = $3.type;  
         argument_count++;
         emit("PARAM", $3.place, NULL, NULL); 
         $$ = $3;  // Pass through the type (or you could pass the first type)
+    }
+    | argument_list COMMA error {
+         syntaxError("Invalid argument after comma");
+         yyerrok;
+         // increment count so we don't get mismatch errors for the wrong reason
+         argument_count++; 
     }
     ;
 %%
