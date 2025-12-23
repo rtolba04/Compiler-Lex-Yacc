@@ -334,7 +334,7 @@ int checkBreakContext(int loop_depth, int switch_depth)
 {
     if (loop_depth == 0 && switch_depth == 0)
     {
-        semanticError("'break' statement not within loop or switch");
+        syntaxError("'break' statement not within loop or switch");
         return 0;
     }
     return 1;
