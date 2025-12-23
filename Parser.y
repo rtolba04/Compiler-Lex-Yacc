@@ -284,6 +284,11 @@ bool_expression:
         $$.type = TYPE_BOOL;
     }
     | LPAREN condition RPAREN      { $$ = $2; }
+    | LPAREN condition error {
+        syntaxError("Missing closing parenthesis ')' in boolean expression");
+        yyerrok;
+        $$ = $2;
+    }
     ;
 
 
@@ -720,7 +725,13 @@ if_begin:
         syntaxError("Malformed condition in IF statement");
         yyerrok;
         // emit("JMPF", "0", NULL, $5->Lstart); 
-        // $$ = $5;
+        $$ = $5;
+    }
+    | IF LPAREN condition error M_if {
+        syntaxError("Missing closing parenthesis ')' in IF statement");
+        yyerrok;
+        emit("JMPF", $3.place, NULL, $5->Lstart);
+        $$ = $5;
     }
     ;
 
@@ -772,6 +783,20 @@ while_stmt:
          current_break_target = NULL; 
          loop_depth--;
     }
+    | WHILE M_while LPAREN condition error {
+        syntaxError("Missing closing parenthesis ')' in WHILE loop");
+        yyerrok;
+        emit("JMPF", $4.place, NULL, $2->Lend);
+        current_break_target = $2->Lend;
+        loop_depth++; 
+    }
+    LBRACE {enter_scope("while");} statement_list {exit_scope();} RBRACE {
+         emit("JMP", NULL, NULL, $2->Lstart);
+         emit("LABEL", NULL, NULL, $2->Lend);
+         free($2);
+         current_break_target = NULL; 
+         loop_depth--;
+    }
     ;
 
 for_stmt:
@@ -810,22 +835,13 @@ for_stmt:
         printf("FOR loop executed\n");
         exit_scope(); 
     }
-    // | FOR LPAREN error SEMICOLON condition SEMICOLON assign RPAREN LBRACE statement_list RBRACE {
-    //     syntaxError("Invalid declaration in FOR loop header");
-    //     yyerrok;
-    //     exit_scope();
-    // }
-    // | FOR LPAREN declaration_stmt error SEMICOLON assign RPAREN LBRACE statement_list RBRACE {
-    //     syntaxError("Invalid condition in FOR loop header");
-    //     yyerrok;
-    //     exit_scope();
-    // }
     | FOR error RPAREN LBRACE statement_list RBRACE {
         syntaxError("Malformed FOR loop structure");
         loop_depth--;
         exit_scope();
         yyerrok;
     }
+    
     ;
 
 
@@ -1115,6 +1131,13 @@ do_while_stmt:
         emit("LABEL", NULL, NULL, $2->Lend);
         current_break_target = NULL;
         printf("DO-WHILE loop executed\n");
+    }
+    | DO M_do do_block WHILE LPAREN condition error SEMICOLON {
+        syntaxError("Missing closing parenthesis ')' in DO-WHILE loop");
+        yyerrok;
+        emit("JMPF", $6.place, NULL, $2->Lend);
+        emit("JMP",  NULL, NULL, $2->Lstart);
+        emit("LABEL", NULL, NULL, $2->Lend);
     }
     | DO M_do do_block WHILE LPAREN condition RPAREN error {
         syntaxError("Missing semicolon after DO-WHILE loop");
