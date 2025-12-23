@@ -323,7 +323,7 @@ int checkDivisionByZero(int divisor)
 {
     if (divisor == 0)
     {
-        semanticError("Division by zero");
+        syntaxError("Division by zero");
         return 0;
     }
     return 1;
